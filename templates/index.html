@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card text-center">
+    <h2>📊 Bienvenue sur le Facturier Électronique</h2>
+    <p style="font-size: 1.2rem; margin: 20px 0;">Gérez facilement vos clients et factures</p>
+    
+    <div class="flex gap-10 justify-center" style="margin-top: 30px;">
+        <a href="{{ url_for('clients_list') }}" class="btn btn-primary">👥 Voir les Clients</a>
+        <a href="{{ url_for('factures_list') }}" class="btn btn-success">📋 Voir les Factures</a>
+    </div>
+</div>
+
+<div class="flex gap-10" style="margin-top: 30px;">
+    <div class="card" style="flex: 1;">
+        <h3>📈 Statistiques</h3>
+        <p>Bientôt disponible...</p>
+    </div>
+    <div class="card" style="flex: 1;">
+        <h3>⚡ Actions Rapides</h3>
+        <div class="flex gap-10">
+            <a href="{{ url_for('client_new') }}" class="btn btn-primary btn-sm">➕ Client</a>
+            <a href="{{ url_for('facture_new') }}" class="btn btn-success btn-sm">➕ Facture</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

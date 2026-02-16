@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>{% if client %}✏️ Modifier{% else %}➕ Nouveau{% endif %} Client</h2>
+        </div>
+        
+        <form method="post">
+            <div class="form-group">
+                <label for="nom">Nom :</label>
+                <input type="text" id="nom" name="nom" value="{{ client.nom if client else '' }}" required placeholder="Entrez le nom">
+            </div>
+            
+            <div class="form-group">
+                <label for="prenom">Prénom :</label>
+                <input type="text" id="prenom" name="prenom" value="{{ client.prenom if client else '' }}" required placeholder="Entrez le prénom">
+            </div>
+            
+            <div class="form-group">
+                <label for="adresse">Adresse :</label>
+                <input type="text" id="adresse" name="adresse" value="{{ client.adresse if client else '' }}" required placeholder="Entrez l'adresse">
+            </div>
+            
+            <div class="form-group">
+                <label for="ville">Ville :</label>
+                <input type="text" id="ville" name="ville" value="{{ client.ville if client else '' }}" required placeholder="Entrez la ville">
+            </div>
+            
+            <div class="form-group">
+                <label for="pays">Pays :</label>
+                <input type="text" id="pays" name="pays" value="{{ client.pays if client else '' }}" required placeholder="Entrez le pays">
+            </div>
+            
+            <div class="form-group">
+                <label for="telephone">Téléphone :</label>
+                <input type="tel" id="telephone" name="telephone" value="{{ client.telephone if client else '' }}" required placeholder="Entrez le téléphone">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email :</label>
+                <input type="email" id="email" name="email" value="{{ client.email if client else '' }}" required placeholder="Entrez l'email">
+            </div>
+            
+            <div class="flex gap-10">
+                <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                <a href="{{ url_for('clients_list') }}" class="btn btn-warning">↩️ Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

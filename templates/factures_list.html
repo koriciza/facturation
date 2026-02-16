@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📋 Liste des Factures</h2>
+        <a href="{{ url_for('facture_new') }}" class="btn btn-success">➕ Nouvelle Facture</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Facture</th>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Total</th>
+                    <th>État</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for facture in factures %}
+                <tr>
+                    <td><strong>{{ facture.numero }}</strong></td>
+                    <td>{{ facture.date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ facture.client.nom }} {{ facture.client.prenom }}</td>
+                    <td><strong>{{ "%.2f"|format(facture.total) }} €</strong></td>
+                    <td>
+                        <span style="padding: 5px 10px; border-radius: 5px; background: {% if facture.etat == 'Payée' %}#c6f6d5{% elif facture.etat == 'En attente' %}#fed7d7{% else %}#fed7d7{% endif %};">
+                            {{ facture.etat }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('facture_detail', id=facture.id) }}" class="btn btn-primary btn-sm">👁️</a>
+                        <a href="{{ url_for('facture_edit', id=facture.id) }}" class="btn btn-warning btn-sm">✏️</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

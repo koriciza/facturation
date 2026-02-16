@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📄 Facture {{ facture.numero }}</h2>
+        <div>
+            <a href="{{ url_for('facture_edit', id=facture.id) }}" class="btn btn-warning">✏️ Modifier</a>
+            <a href="{{ url_for('factures_list') }}" class="btn btn-primary">↩️ Retour</a>
+            <button onclick="imprimerFacture()" class="btn btn-success">🖨️ Imprimer</button>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+        <div>
+            <h3>📅 Informations</h3>
+            <p><strong>Date :</strong> {{ facture.date.strftime('%d/%m/%Y') }}</p>
+            <p><strong>N° Facture :</strong> {{ facture.numero }}</p>
+            <p><strong>État :</strong> 
+                <span style="padding: 5px 10px; border-radius: 5px; background: {% if facture.etat == 'Payée' %}#c6f6d5{% elif facture.etat == 'En attente' %}#fed7d7{% else %}#fed7d7{% endif %};">
+                    {{ facture.etat }}
+                </span>
+            </p>
+            <p><strong>Paiement :</strong> {{ facture.paiement or 'Non spécifié' }}</p>
+        </div>
+        
+        <div>
+            <h3>👤 Client</h3>
+            <p><strong>{{ facture.client.nom }} {{ facture.client.prenom }}</strong></p>
+            <p>{{ facture.client.adresse }}</p>
+            <p>{{ facture.client.ville }}, {{ facture.client.pays }}</p>
+            <p>📞 {{ facture.client.telephone }}</p>
+            <p>✉️ {{ facture.client.email }}</p>
+        </div>
+    </div>
+    
+    <h3>📦 Produits</h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Quantité</th>
+                    <th>Prix unitaire</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in facture.lignes %}
+                <tr>
+                    <td>{{ ligne.produit.nom }}</td>
+                    <td>{{ ligne.quantite }}</td>
+                    <td>{{ "%.2f"|format(ligne.prix_unitaire) }} €</td>
+                    <td><strong>{{ "%.2f"|format(ligne.total) }} €</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align: right;"><strong>TOTAL :</strong></td>
+                    <td><strong style="font-size: 1.2rem;">{{ "%.2f"|format(facture.total) }} €</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}
