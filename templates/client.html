@@ -2,62 +2,134 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <h2>👤 {{ client.nom }} {{ client.prenom }}</h2>
+        <h2>
+            {% if client.type_client == 'person' %}
+            👤 {{ client.nom }} {{ client.prenom or '' }}
+            {% else %}
+            🏢 {{ client.nom }}
+            {% endif %}
+        </h2>
         <div>
             <a href="{{ url_for('client_edit', id=client.id) }}" class="btn btn-warning">✏️ Modifier</a>
             <a href="{{ url_for('clients_list') }}" class="btn btn-primary">↩️ Retour</a>
         </div>
     </div>
     
-    <div class="flex gap-10">
-        <div style="flex: 1;">
-            <p><strong>Adresse :</strong> {{ client.adresse }}</p>
-            <p><strong>Ville :</strong> {{ client.ville }}</p>
-            <p><strong>Pays :</strong> {{ client.pays }}</p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <div class="card" style="margin: 0;">
+            <h3>📋 Informations générales</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <td><strong>Type :</strong></td>
+                    <td>
+                        {% if client.type_client == 'person' %}
+                        Personne Physique
+                        {% else %}
+                        Société / Entreprise
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Nom / Raison sociale :</strong></td>
+                    <td>{{ client.nom }}</td>
+                </tr>
+                {% if client.type_client == 'person' and client.prenom %}
+                <tr>
+                    <td><strong>Prénom :</strong></td>
+                    <td>{{ client.prenom }}</td>
+                </tr>
+                {% endif %}
+            </table>
         </div>
-        <div style="flex: 1;">
-            <p><strong>Téléphone :</strong> {{ client.telephone }}</p>
-            <p><strong>Email :</strong> {{ client.email }}</p>
-        </div>
-    </div>
-</div>
 
-<div class="card">
-    <h3>📋 Factures du client</h3>
-    
-    {% if client.factures %}
-    <div class="table-responsive">
-        <table>
-            <thead>
+        {% if client.type_client == 'Société locale' or client.type_client == 'Société étrangère' %}
+
+        <div class="card" style="margin: 0;">
+            <h3>📍 Adresse</h3>
+            <table style="width: 100%;">
+                {% if client.quartier %}
                 <tr>
-                    <th>N° Facture</th>
-                    <th>Date</th>
-                    <th>Total</th>
-                    <th>État</th>
-                    <th>Actions</th>
+                    <td><strong>Quartier/Colline :</strong></td>
+                    <td>{{ client.quartier }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                {% for facture in client.factures %}
+                {% endif %}
+                {% if client.avenue %}
                 <tr>
-                    <td>{{ facture.numero }}</td>
-                    <td>{{ facture.date.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ "%.2f"|format(facture.total) }} €</td>
-                    <td>
-                        <span style="padding: 5px 10px; border-radius: 5px; background: {% if facture.etat == 'Payée' %}#c6f6d5{% elif facture.etat == 'En attente' %}#fed7d7{% else %}#fed7d7{% endif %};">
-                            {{ facture.etat }}
-                        </span>
-                    </td>
-                    <td>
-                        <a href="{{ url_for('facture_detail', id=facture.id) }}" class="btn btn-primary btn-sm">👁️</a>
-                    </td>
+                    <td><strong>Avenue :</strong></td>
+                    <td>{{ client.avenue }}</td>
                 </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                {% endif %}
+                {% if client.numero %}
+                <tr>
+                    <td><strong>Numéro :</strong></td>
+                    <td>{{ client.numero }}</td>
+                </tr>
+                {% endif %}
+                {% if client.nif %}
+                <tr>
+                    <td><strong>NIF :</strong></td>
+                    <td>{{ client.nif }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+        {% endif %}
+        
+        <div class="card" style="margin: 0;">
+            <h3>📞 Contact</h3>
+            <table style="width: 100%;">
+                {% if client.telephone %}
+                <tr>
+                    <td><strong>Téléphone :</strong></td>
+                    <td>{{ client.telephone }}</td>
+                </tr>
+                {% endif %}
+                {% if client.email %}
+                <tr>
+                    <td><strong>Email :</strong></td>
+                    <td>{{ client.email }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
     </div>
-    {% else %}
-    <p class="text-center">Aucune facture pour ce client</p>
-    {% endif %}
+    
+    <div class="card" style="margin-top: 20px;">
+        <h3>📊 Factures du client</h3>
+        {% if client.factures %}
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>N° Facture</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>État</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for facture in client.factures %}
+                    <tr>
+                        <td>{{ facture.numero }}</td>
+                        <td>{{ facture.date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ "{:,.0f}".format(facture.total).replace(',', ' ') }} FBU</td>
+                        <td>
+                            <span style="padding: 5px 10px; border-radius: 5px; background: {% if facture.etat == 'Payée' %}#c6f6d5{% else %}#fed7d7{% endif %};">
+                                {{ facture.etat }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('facture_detail', id=facture.id) }}" class="btn btn-primary btn-sm">👁️</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center">Aucune facture pour ce client</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

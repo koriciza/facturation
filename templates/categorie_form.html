@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>{% if categorie %}✏️ Modifier{% else %}➕ Nouvelle{% endif %} Catégorie</h2>
+        </div>
+        
+        <form method="post">
+            <div class="form-group">
+                <label for="nom">Nom de la catégorie <span style="color: #e53e3e;">*</span></label>
+                <input type="text" id="nom" name="nom" value="{{ categorie.nom if categorie else '' }}" required placeholder="Ex: Informatique, Bureau, etc.">
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="3" placeholder="Description de la catégorie">{{ categorie.description if categorie else '' }}</textarea>
+            </div>
+            
+            <div class="flex gap-10">
+                <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                <a href="{{ url_for('categories_list') }}" class="btn btn-warning">↩️ Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

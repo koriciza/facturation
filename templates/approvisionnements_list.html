@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📦 Approvisionnements</h2>
+        <a href="{{ url_for('approvisionnement_new') }}" class="btn btn-success">➕ Nouvel Approvisionnement</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Date</th>
+                    <th>Fournisseur</th>
+                    <th>Total HT</th>
+                    <th>Total TTC</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appro in appros %}
+                <tr>
+                    <td><strong>{{ appro.numero }}</strong></td>
+                    <td>{{ appro.date_approvisionnement.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ appro.fournisseur or '-' }}</td>
+                    <td>{{ "%.2f"|format(appro.total_ht) }} €</td>
+                    <td>{{ "%.2f"|format(appro.total_ttc) }} €</td>
+                    <td>
+                        {% if appro.statut == 'recu' %}
+                        <span style="background: #48bb78; color: white; padding: 3px 8px; border-radius: 3px;">Reçu</span>
+                        {% elif appro.statut == 'en_attente' %}
+                        <span style="background: #ed8936; color: white; padding: 3px 8px; border-radius: 3px;">En attente</span>
+                        {% else %}
+                        <span style="background: #f56565; color: white; padding: 3px 8px; border-radius: 3px;">Annulé</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('approvisionnement_detail', id=appro.id) }}" class="btn btn-primary btn-sm">👁️</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

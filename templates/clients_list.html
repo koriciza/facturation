@@ -10,24 +10,33 @@
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Nom</th>
+                    <th>Type</th>
+                    <th>Nom / Raison sociale</th>
                     <th>Prénom</th>
-                    <th>Email</th>
-                    <th>Téléphone</th>
-                    <th>Ville</th>
+                    <th>Quartier</th>
+                    <th>NIF</th>
+                    <th>Contact</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for client in clients %}
                 <tr>
-                    <td>{{ client.id }}</td>
-                    <td>{{ client.nom }}</td>
-                    <td>{{ client.prenom }}</td>
-                    <td>{{ client.email }}</td>
-                    <td>{{ client.telephone }}</td>
-                    <td>{{ client.ville }}</td>
+                    <td>
+                        {% if client.type_client == 'person' %}
+                        <span style="background: #667eea; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem;">👤 Personne</span>
+                        {% else %}
+                        <span style="background: #48bb78; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem;">🏢 Société</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ client.nom }}</strong></td>
+                    <td>{{ client.prenom or '-' }}</td>
+                    <td>{{ client.quartier or '-' }}</td>
+                    <td>{{ client.nif or '-' }}</td>
+                    <td>
+                        {% if client.telephone %}{{ client.telephone }}{% endif %}
+                        {% if client.email %}<br><small>{{ client.email }}</small>{% endif %}
+                    </td>
                     <td>
                         <a href="{{ url_for('client_detail', id=client.id) }}" class="btn btn-primary btn-sm">👁️</a>
                         <a href="{{ url_for('client_edit', id=client.id) }}" class="btn btn-warning btn-sm">✏️</a>

@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash
-from models import Approvisionnement, db, Client, Produit, Facture, LigneFacture, Categorie, UniteMesure, MouvementStock, LigneApprovisionnement
+from models import db, Client, Produit, Facture, LigneFacture, Categorie, UniteMesure
 from datetime import datetime
 from flask import request, jsonify
 from flask_migrate import Migrate
@@ -325,9 +325,7 @@ def produit_new():
             tc=tc_value,
             pf=pf_value,
             article_stockable='article_stockable' in request.form,
-            pv_ttc=float(request.form['pv_ttc']),
-            stock_actuel=float(request.form.get('stock_actuel', 0)),
-            stock_minimum=float(request.form.get('stock_minimum', 0))
+            pv_ttc=float(request.form['pv_ttc'])
         )
         db.session.add(produit)
         db.session.commit()
@@ -339,18 +337,7 @@ def produit_new():
     options_tva = [0, 5.5, 10, 20]
     options_tc = [0, 1, 2, 5]
     options_pf = [0, 0.5, 1, 2]
-
-    '''
-
-    categories = Categorie.query.all()
-    unites = UniteMesure.query.all()
-    return render_template('produit_form.html', 
-                         categories=categories,
-                         unites=unites,
-                         produit=None)
     
-    '''
-
     return render_template('produit_form.html', 
                          categories=categories,
                          unites=unites,
@@ -375,10 +362,6 @@ def produit_edit(id):
         
         produit.article_stockable = 'article_stockable' in request.form
         produit.pv_ttc = float(request.form['pv_ttc'])
-
-         # Update stock fields
-        produit.stock_actuel = float(request.form.get('stock_actuel', 0))
-        produit.stock_minimum = float(request.form.get('stock_minimum', 0))
         
         db.session.commit()
         flash('Produit modifié avec succès', 'success')
@@ -548,159 +531,6 @@ def api_create_categorie():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
-# ---------- Stock Routes ----------
-@app.route('/stock')
-def stock_list():
-    produits = Produit.query.filter_by(article_stockable=True).all()
-    return render_template('stock_list.html', produits=produits)
-
-@app.route('/stock/mouvements/<int:produit_id>')
-def stock_mouvements(produit_id):
-    produit = Produit.query.get_or_404(produit_id)
-    mouvements = MouvementStock.query.filter_by(produit_id=produit_id).order_by(MouvementStock.date_mouvement.desc()).all()
-    return render_template('stock_mouvements.html', produit=produit, mouvements=mouvements)
-
-@app.route('/stock/ajuster/<int:produit_id>', methods=['GET', 'POST'])
-def stock_ajuster(produit_id):
-    produit = Produit.query.get_or_404(produit_id)
-    if request.method == 'POST':
-        nouvelle_quantite = int(request.form['nouvelle_quantite'])
-        commentaire = request.form.get('commentaire', '')
-        
-        # Enregistrer le mouvement
-        mouvement = MouvementStock(
-            produit_id=produit.id,
-            type_mouvement=MouvementStock.TYPE_AJUSTEMENT,
-            quantite=abs(nouvelle_quantite - produit.stock_actuel),
-            stock_avant=produit.stock_actuel,
-            stock_apres=nouvelle_quantite,
-            commentaire=commentaire,
-            utilisateur='admin'  # À améliorer avec système d'auth
-        )
-        
-        produit.stock_actuel = nouvelle_quantite
-        db.session.add(mouvement)
-        db.session.commit()
-        
-        flash('Stock ajusté avec succès', 'success')
-        return redirect(url_for('stock_mouvements', produit_id=produit.id))
-    
-    return render_template('stock_ajuster.html', produit=produit)
-
-# ---------- Approvisionnement Routes ----------
-@app.route('/approvisionnements')
-def approvisionnements_list():
-    appros = Approvisionnement.query.order_by(Approvisionnement.date_approvisionnement.desc()).all()
-    return render_template('approvisionnements_list.html', appros=appros)
-
-@app.route('/approvisionnement/<int:id>')
-def approvisionnement_detail(id):
-    appro = Approvisionnement.query.get_or_404(id)
-    return render_template('approvisionnement.html', appro=appro)
-
-@app.route('/approvisionnement/new', methods=['GET', 'POST'])
-def approvisionnement_new():
-    if request.method == 'POST':
-        # Générer numéro
-        last_appro = Approvisionnement.query.order_by(Approvisionnement.id.desc()).first()
-        if last_appro:
-            new_num = f'APP{last_appro.id + 1:04d}'
-        else:
-            new_num = 'APP0001'
-
-        appro = Approvisionnement(
-            numero=new_num,
-            fournisseur=request.form.get('fournisseur', ''),
-            reference_fournisseur=request.form.get('reference_fournisseur', ''),
-            statut=Approvisionnement.STATUT_EN_ATTENTE,
-            notes=request.form.get('notes', '')
-        )
-        db.session.add(appro)
-        db.session.flush()
-
-        # Traiter les lignes
-        produits_ids = request.form.getlist('produit_id[]')
-        quantites = request.form.getlist('quantite[]')
-        prix_ht = request.form.getlist('prix_ht[]')
-        tva_list = request.form.getlist('tva[]')
-
-        total_ht = 0.0
-        total_ttc = 0.0
-
-        for i in range(len(produits_ids)):
-            if produits_ids[i] and quantites[i] and prix_ht[i]:
-                produit = Produit.query.get(int(produits_ids[i]))
-                tva = float(tva_list[i]) if i < len(tva_list) else produit.tva
-                
-                prix_unitaire_ht = float(prix_ht[i])
-                prix_unitaire_ttc = prix_unitaire_ht * (1 + tva/100)
-                
-                ligne = LigneApprovisionnement(
-                    approvisionnement_id=appro.id,
-                    produit_id=int(produits_ids[i]),
-                    quantite=int(quantites[i]),
-                    prix_unitaire_ht=prix_unitaire_ht,
-                    prix_unitaire_ttc=prix_unitaire_ttc,
-                    tva=tva
-                )
-                db.session.add(ligne)
-                
-                total_ht += ligne.total_ht
-                total_ttc += ligne.total_ttc
-
-        appro.total_ht = total_ht
-        appro.total_ttc = total_ttc
-        db.session.commit()
-        
-        flash('Approvisionnement créé avec succès', 'success')
-        return redirect(url_for('approvisionnement_detail', id=appro.id))
-
-    produits = Produit.query.filter_by(article_stockable=True).all()
-    produits_serialized = [{'id': p.id, 'nom': p.nom, 'tva': p.tva} for p in produits]
-    return render_template('approvisionnement_form.html', produits=produits_serialized)
-
-@app.route('/approvisionnement/<int:id>/recevoir', methods=['POST'])
-def approvisionnement_recevoir(id):
-    appro = Approvisionnement.query.get_or_404(id)
-    
-    if appro.statut == Approvisionnement.STATUT_EN_ATTENTE:
-        for ligne in appro.lignes:
-            # Mettre à jour le stock
-            produit = ligne.produit
-            ancien_stock = produit.stock_actuel
-            
-            # Créer mouvement de stock
-            mouvement = MouvementStock(
-                produit_id=produit.id,
-                type_mouvement=MouvementStock.TYPE_ENTREE,
-                quantite=ligne.quantite,
-                stock_avant=ancien_stock,
-                stock_apres=ancien_stock + ligne.quantite,
-                reference_type='approvisionnement',
-                reference_id=appro.id,
-                commentaire=f"Réception approvisionnement {appro.numero}",
-                utilisateur='admin'
-            )
-            
-            produit.stock_actuel += ligne.quantite
-            db.session.add(mouvement)
-        
-        appro.statut = Approvisionnement.STATUT_RECU
-        db.session.commit()
-        flash('Approvisionnement reçu et stock mis à jour', 'success')
-    
-    return redirect(url_for('approvisionnement_detail', id=appro.id))
-
-@app.route('/approvisionnement/<int:id>/annuler', methods=['POST'])
-def approvisionnement_annuler(id):
-    appro = Approvisionnement.query.get_or_404(id)
-    appro.statut = Approvisionnement.STATUT_ANNULE
-    db.session.commit()
-    flash('Approvisionnement annulé', 'success')
-    return redirect(url_for('approvisionnement_detail', id=appro.id))  
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)

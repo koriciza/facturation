@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>{% if produit %}✏️ Modifier{% else %}➕ Nouvel{% endif %} Article</h2>
+        </div>
+        
+        <form method="post">
+            <!-- Nom de l'article (required) -->
+            <div class="form-group">
+                <label for="nom">Nom de l'article <span style="color: #e53e3e;">*</span></label>
+                <input type="text" id="nom" name="nom" value="{{ produit.nom if produit else '' }}" required placeholder="Nom de l'article">
+            </div>
+            
+            <!-- Code ou référence -->
+            <div class="form-group">
+                <label for="code">Code ou référence de l'article</label>
+                <input type="text" id="code" name="code" value="{{ produit.code if produit else '' }}" placeholder="Code ou référence">
+            </div>
+            
+        <!-- Unité de mesure with + button -->
+<div class="form-group">
+    <label for="unite_mesure_id">Unité de mesure <span style="color: #e53e3e;">*</span></label>
+    <div style="display: flex; gap: 10px;">
+        <select id="unite_mesure_id" name="unite_mesure_id" required style="flex: 1;">
+            <option value="">Sélectionner</option>
+            {% for unite in unites %}
+            <option value="{{ unite.id }}" {% if produit and produit.unite_mesure_id == unite.id %}selected{% endif %}>
+                {{ unite.nom }}{% if unite.symbole %} ({{ unite.symbole }}){% endif %}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="button" onclick="openUniteModal()" class="btn btn-success" style="width: auto;">➕</button>
+    </div>
+</div>
+
+<!-- Catégorie with + button -->
+<div class="form-group">
+    <label for="categorie_id">Catégorie <span style="color: #e53e3e;">*</span></label>
+    <div style="display: flex; gap: 10px;">
+        <select id="categorie_id" name="categorie_id" required style="flex: 1;">
+            <option value="">Sélectionner</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if produit and produit.categorie_id == cat.id %}selected{% endif %}>
+                {{ cat.nom }}{% if cat.description %} - {{ cat.description }}{% endif %}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="button" onclick="openCategorieModal()" class="btn btn-success" style="width: auto;">➕</button>
+    </div>
+</div>
+            
+        <div class="form-group">
+    <label for="tva">TVA <span style="color: #e53e3e;">*</span></label>
+    <select id="tva" name="tva" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Sélectionner</option>
+        <option value="0" {% if produit and produit.tva == 0 %}selected{% endif %}>0%</option>
+        <option value="10" {% if produit and produit.tva == 10 %}selected{% endif %}>10%</option>
+        <option value="18" {% if produit and produit.tva == 18 %}selected{% endif %}>18%</option>
+    </select>
+</div>
+
+<!-- PF (Port Payé/Facturé ?) -->
+<div class="form-group">
+    <label for="pf">PF <span style="color: #e53e3e;">*</span></label>
+    <select id="pf" name="pf" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Sélectionner</option>
+        <option value="OUI" {% if produit and produit.pf == 'OUI' %}selected{% endif %}>OUI</option>
+        <option value="NON" {% if produit and produit.pf == 'NON' %}selected{% endif %}>NON</option>
+    </select>
+</div>
+
+<!-- TC (Transport en Commun/Collecte ?) -->
+<div class="form-group">
+    <label for="tc">TC <span style="color: #e53e3e;">*</span></label>
+    <select id="tc" name="tc" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Sélectionner</option>
+        <option value="OUI" {% if produit and produit.tc == 'OUI' %}selected{% endif %}>OUI</option>
+        <option value="NON" {% if produit and produit.tc == 'NON' %}selected{% endif %}>NON</option>
+    </select>
+</div>
+            
+            <!-- Article Stockable ? -->
+            <div class="form-group">
+                <label for="article_stockable">Article Stockable ? :</label>
+                <select id="article_stockable" name="article_stockable">
+                    <option value="">Sélectionner</option>
+                    <option value="1" {% if not produit or produit.article_stockable == '1' %}selected{% endif %}>Oui</option>
+                    <option value="0" {% if produit and not produit.article_stockable == '0' %}selected{% endif %}>Non</option>
+                </select>
+            </div>
+            
+            <!-- PV TTC (required) -->
+            <div class="form-group">
+                <label for="pv_ttc">PV.TTC <span style="color: #e53e3e;">*</span></label>
+                <input type="number" id="pv_ttc" name="pv_ttc" value="{{ produit.pv_ttc if produit else '' }}" step="0.01" min="0" required placeholder="0.00">
+            </div>
+
+
+            <div class="form-group">
+    <label for="stock_actuel">Stock actuel</label>
+    <input type="number" id="stock_actuel" name="stock_actuel" 
+           value="{{ produit.stock_actuel if produit and produit.stock_actuel is not none else 0 }}" 
+           step="0.01" min="0" placeholder="0.00">
+    <small style="color: #718096;">Quantité en stock</small>
+</div>
+
+<div class="form-group">
+    <label for="stock_minimum">Stock minimum d'alerte</label>
+    <input type="number" id="stock_minimum" name="stock_minimum" 
+           value="{{ produit.stock_minimum if produit and produit.stock_minimum is not none else 0 }}" 
+           step="0.01" min="0" placeholder="0.00">
+    <small style="color: #718096;">Seuil en dessous duquel une alerte sera affichée</small>
+</div>
+            
+            <!-- Note: Required fields marked with * -->
+            <p style="color: #718096; font-size: 0.9rem; margin-bottom: 20px;"><span style="color: #e53e3e;">*</span> Champs obligatoires</p>
+            
+            <div class="flex gap-10">
+                <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                <a href="{{ url_for('produits_list') }}" class="btn btn-warning">↩️ Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for adding new option -->
+<div id="optionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="background: white; max-width: 400px; margin: 100px auto; padding: 20px; border-radius: 10px;">
+        <h3 id="modalTitle">Ajouter une nouvelle option</h3>
+        <div class="form-group">
+            <label id="modalLabel" for="newOptionValue">Nouvelle valeur :</label>
+            <input type="text" id="newOptionValue" class="form-control" placeholder="Entrez la nouvelle valeur">
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-warning" onclick="fermerModal()">Annuler</button>
+            <button type="button" class="btn btn-success" onclick="ajouterValeur()">Ajouter</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Unit of Measure Modal -->
+<div id="uniteModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: white; margin: 15% auto; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">Nouvelle unité de mesure</h3>
+            <span onclick="closeUniteModal()" style="cursor: pointer; font-size: 24px;">&times;</span>
+        </div>
+        
+        <form id="uniteForm" onsubmit="saveUnite(event)">
+            <div style="margin-bottom: 15px;">
+                <label for="unite_nom">Nom <span style="color: #e53e3e;">*</span></label>
+                <input type="text" id="unite_nom" name="nom" required 
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="unite_symbole">Symbole</label>
+                <input type="text" id="unite_symbole" name="symbole" 
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="unite_description">Description</label>
+                <textarea id="unite_description" name="description" rows="2"
+                          style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+            </div>
+            
+            <div style="text-align: right;">
+                <button type="button" onclick="closeUniteModal()" 
+                        style="padding: 8px 16px; margin-right: 10px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer;">
+                    Annuler
+                </button>
+                <button type="submit" 
+                        style="padding: 8px 16px; background: #48bb78; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div id="categorieModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: white; margin: 15% auto; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">Nouvelle catégorie</h3>
+            <span onclick="closeCategorieModal()" style="cursor: pointer; font-size: 24px;">&times;</span>
+        </div>
+        
+        <form id="categorieForm" onsubmit="saveCategorie(event)">
+            <div style="margin-bottom: 15px;">
+                <label for="categorie_nom">Nom <span style="color: #e53e3e;">*</span></label>
+                <input type="text" id="categorie_nom" name="nom" required 
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="categorie_description">Description</label>
+                <textarea id="categorie_description" name="description" rows="3"
+                          style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+            </div>
+            
+            <div style="text-align: right;">
+                <button type="button" onclick="closeCategorieModal()" 
+                        style="padding: 8px 16px; margin-right: 10px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer;">
+                    Annuler
+                </button>
+                <button type="submit" 
+                        style="padding: 8px 16px; background: #48bb78; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let champActuel = '';
+    let estPourcentage = false;
+
+    function ajouterOption(champ) {
+        champActuel = champ;
+        
+        // Définir le titre et le label selon le champ
+        const titres = {
+            'unite_mesure': 'Nouvelle unité de mesure',
+            'categorie': 'Nouvelle catégorie',
+            'tva': 'Nouveau taux de TVA',
+            'tc': 'Nouveau taux TC',
+            'pf': 'Nouveau taux PF'
+        };
+        
+        const labels = {
+            'unite_mesure': 'Unité de mesure :',
+            'categorie': 'Catégorie :',
+            'tva': 'Taux de TVA (%) :',
+            'tc': 'Taux TC (%) :',
+            'pf': 'Taux PF (%) :'
+        };
+        
+        // Vérifier si c'est un champ de pourcentage
+        estPourcentage = ['tva', 'tc', 'pf'].includes(champ);
+        
+        document.getElementById('modalTitle').textContent = titres[champ] || 'Ajouter une option';
+        document.getElementById('modalLabel').textContent = labels[champ] || 'Nouvelle valeur :';
+        document.getElementById('newOptionValue').value = '';
+        document.getElementById('optionModal').style.display = 'block';
+    }
+
+    function fermerModal() {
+        document.getElementById('optionModal').style.display = 'none';
+        champActuel = '';
+        estPourcentage = false;
+    }
+
+    function ajouterValeur() {
+        const valeur = document.getElementById('newOptionValue').value.trim();
+        if (!valeur) {
+            alert('Veuillez entrer une valeur');
+            return;
+        }
+
+        const select = document.getElementById(champActuel);
+        
+        // Créer la nouvelle option
+        const option = document.createElement('option');
+        
+        if (estPourcentage) {
+            // Pour les pourcentages, on garde la valeur numérique
+            const valeurNumerique = parseFloat(valeur);
+            if (isNaN(valeurNumerique)) {
+                alert('Veuillez entrer un nombre valide');
+                return;
+            }
+            option.value = valeurNumerique;
+            option.text = valeur + '%';
+        } else {
+            option.value = valeur;
+            option.text = valeur;
+        }
+        
+        // Ajouter l'option et la sélectionner
+        select.appendChild(option);
+        select.value = estPourcentage ? parseFloat(valeur) : valeur;
+        
+        // Fermer le modal
+        fermerModal();
+        
+        // Sauvegarder dans le localStorage pour persister entre les sessions
+        sauvegarderOptions(champActuel, valeur, estPourcentage);
+    }
+
+    function sauvegarderOptions(champ, valeur, estPourcentage) {
+        // Récupérer les options existantes
+        let options = localStorage.getItem(champ + '_options');
+        options = options ? JSON.parse(options) : [];
+        
+        // Ajouter la nouvelle option si elle n'existe pas déjà
+        if (!options.includes(valeur.toString())) {
+            options.push(valeur.toString());
+            localStorage.setItem(champ + '_options', JSON.stringify(options));
+        }
+    }
+
+    function chargerOptions() {
+        // Charger les options sauvegardées pour chaque champ
+        const champs = ['unite_mesure', 'categorie', 'tva', 'tc', 'pf'];
+        
+        champs.forEach(champ => {
+            const options = localStorage.getItem(champ + '_options');
+            if (options) {
+                const valeurs = JSON.parse(options);
+                const select = document.getElementById(champ);
+                const estPourcentage = ['tva', 'tc', 'pf'].includes(champ);
+                
+                valeurs.forEach(valeur => {
+                    // Vérifier si l'option existe déjà
+                    let existe = false;
+                    for (let i = 0; i < select.options.length; i++) {
+                        if (estPourcentage) {
+                            if (parseFloat(select.options[i].value) === parseFloat(valeur)) {
+                                existe = true;
+                                break;
+                            }
+                        } else {
+                            if (select.options[i].value === valeur) {
+                                existe = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!existe) {
+                        const option = document.createElement('option');
+                        if (estPourcentage) {
+                            option.value = parseFloat(valeur);
+                            option.text = valeur + '%';
+                        } else {
+                            option.value = valeur;
+                            option.text = valeur;
+                        }
+                        select.appendChild(option);
+                    }
+                });
+            }
+        });
+    }
+
+    // Charger les options au chargement de la page
+    document.addEventListener('DOMContentLoaded', chargerOptions);
+</script>
+<script>
+// Unit of Measure Modal Functions
+function openUniteModal() {
+    document.getElementById('uniteModal').style.display = 'block';
+    document.getElementById('uniteForm').reset();
+}
+
+function closeUniteModal() {
+    document.getElementById('uniteModal').style.display = 'none';
+}
+
+function saveUnite(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    
+    fetch('/api/unites', {
+        method: 'POST',
+        body: JSON.stringify({
+            nom: formData.get('nom'),
+            symbole: formData.get('symbole'),
+            description: formData.get('description')
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Add new option to select
+            const select = document.getElementById('unite_mesure_id');
+            const option = document.createElement('option');
+            option.value = data.unite.id;
+            option.text = data.unite.nom + (data.unite.symbole ? ' (' + data.unite.symbole + ')' : '');
+            option.selected = true;
+            select.appendChild(option);
+            
+            // Close modal
+            closeUniteModal();
+            
+            // Show success message
+            alert('Unité créée avec succès!');
+        } else {
+            alert('Erreur: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Une erreur est survenue');
+    });
+}
+
+// Category Modal Functions
+function openCategorieModal() {
+    document.getElementById('categorieModal').style.display = 'block';
+    document.getElementById('categorieForm').reset();
+}
+
+function closeCategorieModal() {
+    document.getElementById('categorieModal').style.display = 'none';
+}
+
+function saveCategorie(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    
+    fetch('/api/categories', {
+        method: 'POST',
+        body: JSON.stringify({
+            nom: formData.get('nom'),
+            description: formData.get('description')
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Add new option to select
+            const select = document.getElementById('categorie_id');
+            const option = document.createElement('option');
+            option.value = data.categorie.id;
+            option.text = data.categorie.nom + (data.categorie.description ? ' - ' + data.categorie.description : '');
+            option.selected = true;
+            select.appendChild(option);
+            
+            // Close modal
+            closeCategorieModal();
+            
+            // Show success message
+            alert('Catégorie créée avec succès!');
+        } else {
+            alert('Erreur: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Une erreur est survenue');
+    });
+}
+
+// Close modal if clicking outside
+window.onclick = function(event) {
+    const uniteModal = document.getElementById('uniteModal');
+    const categorieModal = document.getElementById('categorieModal');
+    
+    if (event.target == uniteModal) {
+        closeUniteModal();
+    }
+    if (event.target == categorieModal) {
+        closeCategorieModal();
+    }
+}
+</script>
+
+<style>
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 16px;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+</style>
+
+<style>
+.modal {
+    animation: fadeIn 0.3s;
+}
+
+.modal > div {
+    animation: slideIn 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.btn-success {
+    background-color: #48bb78;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-success:hover {
+    background-color: #38a169;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script id="products-data" type="application/json">
+    {{ produits|tojson }}
+</script>
+
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>➕ Nouvel Approvisionnement</h2>
+        </div>
+        
+        <form method="post">
+            <div class="form-group">
+                <label for="fournisseur">Fournisseur</label>
+                <input type="text" id="fournisseur" name="fournisseur" placeholder="Nom du fournisseur">
+            </div>
+            
+            <div class="form-group">
+                <label for="reference_fournisseur">Référence fournisseur</label>
+                <input type="text" id="reference_fournisseur" name="reference_fournisseur" placeholder="N° de commande fournisseur">
+            </div>
+            
+            <h3>📦 Produits</h3>
+            <div id="produits-container"></div>
+            
+            <div class="flex justify-between align-center mt-20">
+                <button type="button" id="ajouter_produit" class="btn btn-success">➕ Ajouter un produit</button>
+                <h3>Total HT: <span id="total_ht">0.00</span> € | Total TTC: <span id="total_ttc">0.00</span> €</h3>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes" rows="3" placeholder="Notes additionnelles..."></textarea>
+            </div>
+            
+            <div class="flex gap-10 mt-20">
+                <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                <a href="{{ url_for('approvisionnements_list') }}" class="btn btn-warning">↩️ Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let produits = JSON.parse(document.getElementById('products-data').textContent);
+
+    function ajouterProduit() {
+        let container = document.getElementById('produits-container');
+        let index = container.children.length;
+        
+        let productRow = document.createElement('div');
+        productRow.className = 'product-row';
+        productRow.dataset.index = index;
+        
+        let html = `
+            <div class="product-fields">
+                <div class="form-group">
+                    <label>Produit :</label>
+                    <select name="produit_id[]" required onchange="updateProductInfo(this)">
+                        <option value="">Choisir</option>
+                        ${produits.map(p => `<option value="${p.id}" data-tva="${p.tva}">${p.nom}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantité :</label>
+                    <input type="number" name="quantite[]" min="1" value="1" required onchange="calculerTotaux()">
+                </div>
+                <div class="form-group">
+                    <label>PU HT :</label>
+                    <input type="number" step="0.01" name="prix_ht[]" value="0" required onchange="calculerTotaux()">
+                </div>
+                <div class="form-group">
+                    <label>TVA % :</label>
+                    <input type="number" step="0.1" name="tva[]" class="tva-input" value="20" required onchange="calculerTotaux()">
+                </div>
+                <div class="form-group">
+                    <label>Total TTC :</label>
+                    <div class="ligne-total-ttc">0.00 €</div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.product-row').remove(); calculerTotaux();">🗑️ Supprimer</button>
+        `;
+        
+        productRow.innerHTML = html;
+        container.appendChild(productRow);
+    }
+
+    function updateProductInfo(select) {
+        let row = select.closest('.product-row');
+        let tvaInput = row.querySelector('.tva-input');
+        let selectedOption = select.options[select.selectedIndex];
+        
+        if (selectedOption.value) {
+            tvaInput.value = selectedOption.dataset.tva || 20;
+        }
+        calculerTotaux();
+    }
+
+    function calculerTotaux() {
+        let totalHT = 0;
+        let totalTTC = 0;
+        
+        document.querySelectorAll('.product-row').forEach(row => {
+            let quantite = parseFloat(row.querySelector('[name="quantite[]"]').value) || 0;
+            let prixHT = parseFloat(row.querySelector('[name="prix_ht[]"]').value) || 0;
+            let tva = parseFloat(row.querySelector('[name="tva[]"]').value) || 0;
+            
+            let ligneHT = quantite * prixHT;
+            let ligneTTC = ligneHT * (1 + tva/100);
+            
+            totalHT += ligneHT;
+            totalTTC += ligneTTC;
+            
+            row.querySelector('.ligne-total-ttc').textContent = ligneTTC.toFixed(2) + ' €';
+        });
+        
+        document.getElementById('total_ht').textContent = totalHT.toFixed(2);
+        document.getElementById('total_ttc').textContent = totalTTC.toFixed(2);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        ajouterProduit();
+        document.getElementById('ajouter_produit').addEventListener('click', ajouterProduit);
+    });
+</script>
+
+<style>
+    .product-row {
+        background: #f8f9ff;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #48bb78;
+    }
+    
+    .product-fields {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    
+    @media screen and (max-width: 768px) {
+        .product-fields {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

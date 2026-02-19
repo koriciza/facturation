@@ -6,42 +6,69 @@
             <h2>{% if client %}✏️ Modifier{% else %}➕ Nouveau{% endif %} Client</h2>
         </div>
         
-        <form method="post">
+        <form method="post" id="clientForm">
+            <!-- Identification (Physical Person or Company) -->
             <div class="form-group">
-                <label for="nom">Nom :</label>
-                <input type="text" id="nom" name="nom" value="{{ client.nom if client else '' }}" required placeholder="Entrez le nom">
+                <label for="type_client">Identification <span style="color: #e53e3e;">*</span></label>
+                <select id="type_client" name="type_client" required onchange="toggleFields()">
+                    <option value="">Select Item</option>
+                    <option value="person" {% if client and client.type_client == 'person' %}selected{% endif %}>Personne Physique</option>
+                    <option value="Société locale" {% if client and client.type_client == 'Société locale' %}selected{% endif %}>Société locale</option>
+                    <option value="Société étrangère" {% if client and client.type_client == 'Société étrangère' %}selected{% endif %}>Société étrangère</option>
+             
+                </select>
             </div>
             
+            <!-- Nom / Raison sociale (always required) -->
             <div class="form-group">
-                <label for="prenom">Prénom :</label>
-                <input type="text" id="prenom" name="prenom" value="{{ client.prenom if client else '' }}" required placeholder="Entrez le prénom">
+                <label for="nom" id="nomLabel">Nom <span style="color: #e53e3e;">*</span></label>
+                <input type="text" id="nom" name="nom" value="{{ client.nom if client else '' }}" required placeholder="Nom ou raison sociale...">
+                <small id="nomHelp" style="color: #718096;">Nom de la personne ou raison sociale de l'entreprise</small>
             </div>
             
-            <div class="form-group">
-                <label for="adresse">Adresse :</label>
-                <input type="text" id="adresse" name="adresse" value="{{ client.adresse if client else '' }}" required placeholder="Entrez l'adresse">
+            <!-- Prénom (only for physical person) -->
+            <div class="form-group person-field">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="prenom" value="{{ client.prenom if client else '' }}" placeholder="Prénom">
             </div>
             
-            <div class="form-group">
-                <label for="ville">Ville :</label>
-                <input type="text" id="ville" name="ville" value="{{ client.ville if client else '' }}" required placeholder="Entrez la ville">
+            <!-- Quartier/Colline -->
+            <div class="form-group company-field">
+                <label for="quartier">Quartier/Colline <span class="company-required" style="color: #e53e3e; display: none;">*</span></label>
+                <input type="text" id="quartier" name="quartier" value="{{ client.quartier if client else '' }}" placeholder="Quartier/Colline">
             </div>
             
-            <div class="form-group">
-                <label for="pays">Pays :</label>
-                <input type="text" id="pays" name="pays" value="{{ client.pays if client else '' }}" required placeholder="Entrez le pays">
+            <!-- Avenue -->
+            <div class="form-group company-field">
+                <label for="avenue">Avenue <span class="company-required" style="color: #e53e3e; display: none;">*</span></label>
+                <input type="text" id="avenue" name="avenue" value="{{ client.avenue if client else '' }}" placeholder="Avenue">
             </div>
             
-            <div class="form-group">
-                <label for="telephone">Téléphone :</label>
-                <input type="tel" id="telephone" name="telephone" value="{{ client.telephone if client else '' }}" required placeholder="Entrez le téléphone">
+            <!-- Numéro -->
+            <div class="form-group company-field">
+                <label for="numero">Numéro <span class="company-required" style="color: #e53e3e; display: none;">*</span></label>
+                <input type="text" id="numero" name="numero" value="{{ client.numero if client else '' }}" placeholder="Numéro">
             </div>
             
-            <div class="form-group">
-                <label for="email">Email :</label>
-                <input type="email" id="email" name="email" value="{{ client.email if client else '' }}" required placeholder="Entrez l'email">
+            <!-- NIF (only for company) -->
+            <div class="form-group company-field">
+                <label for="nif">NIF <span class="company-required" style="color: #e53e3e; display: none;">*</span></label>
+                <input type="text" id="nif" name="nif" value="{{ client.nif if client else '' }}" placeholder="NIF">
             </div>
             
+            <!-- Téléphone (optional for both) -->
+            <div class="form-group">
+                <label for="telephone">Téléphone</label>
+                <input type="tel" id="telephone" name="telephone" value="{{ client.telephone if client else '' }}" placeholder="Téléphone">
+            </div>
+            
+            <!-- Email (optional for both) -->
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{ client.email if client else '' }}" placeholder="Email">
+            </div>
+            
+            <!-- Submit button -->
             <div class="flex gap-10">
                 <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
                 <a href="{{ url_for('clients_list') }}" class="btn btn-warning">↩️ Annuler</a>
@@ -49,4 +76,75 @@
         </form>
     </div>
 </div>
+
+<script>
+    function toggleFields() {
+        const typeClient = document.getElementById('type_client').value;
+        const personFields = document.querySelectorAll('.person-field');
+        const companyFields = document.querySelectorAll('.company-field');
+        const companyRequired = document.querySelectorAll('.company-required');
+        const nomLabel = document.getElementById('nomLabel');
+        const nomInput = document.getElementById('nom');
+        const nomHelp = document.getElementById('nomHelp');
+        
+        if (typeClient === 'person') {
+            // Personne Physique
+            personFields.forEach(field => field.style.display = 'block');
+            companyFields.forEach(field => field.style.display = 'none');
+            
+            // Update Nom field
+            nomLabel.innerHTML = 'Nom <span style="color: #e53e3e;">*</span>';
+            nomInput.placeholder = 'Nom de la personne';
+            nomHelp.textContent = 'Nom de la personne physique';
+            
+            // Remove required from company fields
+            companyFields.forEach(field => {
+                const inputs = field.querySelectorAll('input');
+                inputs.forEach(input => input.required = false);
+            });
+            
+        } else if (typeClient === 'Société locale' || typeClient === 'Société étrangère') {
+            // Société / Entreprise
+            personFields.forEach(field => field.style.display = 'none');
+            companyFields.forEach(field => field.style.display = 'block');
+            
+            // Update Nom field
+            nomLabel.innerHTML = 'Raison sociale <span style="color: #e53e3e;">*</span>';
+            nomInput.placeholder = 'Raison sociale de l\'entreprise';
+            nomHelp.textContent = 'Raison sociale de l\'entreprise';
+            
+            // Add required to company fields
+            companyFields.forEach(field => {
+                const inputs = field.querySelectorAll('input');
+                inputs.forEach(input => input.required = true);
+            });
+            
+            // Show required asterisks
+            companyRequired.forEach(el => el.style.display = 'inline');
+            
+        } else {
+            // No selection
+            personFields.forEach(field => field.style.display = 'none');
+            companyFields.forEach(field => field.style.display = 'none');
+            nomLabel.innerHTML = 'Nom <span style="color: #e53e3e;">*</span>';
+            nomInput.placeholder = 'Nom ou raison sociale...';
+            nomHelp.textContent = 'Nom de la personne ou raison sociale de l\'entreprise';
+        }
+    }
+
+    // Run on page load to set initial state
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleFields();
+    });
+</script>
+
+<style>
+    .person-field, .company-field {
+        transition: all 0.3s ease;
+    }
+    
+    .company-required {
+        font-size: 0.9rem;
+    }
+</style>
 {% endblock %}

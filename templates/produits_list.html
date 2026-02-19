@@ -1,0 +1,566 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+
+   
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 { 
+            color: #2c3e50;
+            margin-top: 0;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        
+        /* Filter Section */
+        .filters-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        .filter-group {
+            flex: 1 1 200px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9em;
+        }
+        .filter-group input, 
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        .btn-info:hover {
+            background: #138496;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th {
+            background: #343a40;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        /* Sortable headers */
+        .sortable {
+            cursor: pointer;
+            color: white;
+            text-decoration: none;
+        }
+        .sortable:hover {
+            text-decoration: underline;
+        }
+        .sort-icon {
+            margin-left: 5px;
+            font-size: 12px;
+        }
+        
+        /* Badges */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-top: 20px;
+        }
+        .page-item {
+            list-style: none;
+        }
+        .page-link {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            color: #007bff;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .page-link:hover {
+            background: #e9ecef;
+        }
+        .page-item.active .page-link {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background: #fff;
+            border-color: #dee2e6;
+        }
+        
+        /* Per page selector */
+        .per-page-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 20px;
+        }
+        .per-page-selector select {
+            padding: 6px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        
+        /* Stats */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #6c757d;
+        }
+        
+        /* Actions */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Gestion des Produits</h1>
+        
+        <!-- Action Buttons -->
+        <div style="margin-bottom: 20px;">
+            <a href="{{ url_for('produit_new') }}" class="btn btn-success">➕ Nouveau Produit</a>
+            <a href="{{ url_for('produits_list') }}" class="btn btn-secondary">⟲ Réinitialiser les filtres</a>
+        </div>
+        
+        <!-- Filters Panel -->
+        <div class="filters-panel">
+            <form method="GET" action="{{ url_for('produits_list') }}" id="filterForm">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="search">🔍 Recherche</label>
+                        <input type="text" id="search" name="search" 
+                               value="{{ search_term or '' }}" 
+                               placeholder="Nom ou code...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="categorie_id">📂 Catégorie</label>
+                        <select id="categorie_id" name="categorie_id">
+                            <option value="">Toutes</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if selected_categorie == cat.id %}selected{% endif %}>
+                                {{ cat.nom }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="unite_id">⚖️ Unité</label>
+                        <select id="unite_id" name="unite_id">
+                            <option value="">Toutes</option>
+                            {% for unite in unites %}
+                            <option value="{{ unite.id }}" {% if selected_unite == unite.id %}selected{% endif %}>
+                                {{ unite.nom }}{% if unite.symbole %} ({{ unite.symbole }}){% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="tc">🚚 TC</label>
+                        <select id="tc" name="tc">
+                            <option value="">Tous</option>
+                            <option value="OUI" {% if selected_tc == 'OUI' %}selected{% endif %}>OUI</option>
+                            <option value="NON" {% if selected_tc == 'NON' %}selected{% endif %}>NON</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="pf">📦 PF</label>
+                        <select id="pf" name="pf">
+                            <option value="">Tous</option>
+                            <option value="OUI" {% if selected_pf == 'OUI' %}selected{% endif %}>OUI</option>
+                            <option value="NON" {% if selected_pf == 'NON' %}selected{% endif %}>NON</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="stockable">📊 Stockable</label>
+                        <select id="stockable" name="stockable">
+                            <option value="">Tous</option>
+                            <option value="true" {% if selected_stockable == 'true' %}selected{% endif %}>OUI</option>
+                            <option value="false" {% if selected_stockable == 'false' %}selected{% endif %}>NON</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="per_page">📄 Par page</label>
+                        <select id="per_page" name="per_page" onchange="this.form.submit()">
+                            <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
+                            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                            <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary">🔍 Filtrer</button>
+                    </div>
+                </div>
+                
+                <!-- Preserve sort parameters -->
+                <input type="hidden" name="sort_by" value="{{ sort_by }}">
+                <input type="hidden" name="sort_order" value="{{ sort_order }}">
+            </form>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats">
+            <span>
+                📊 {{ pagination.total }} produit(s) trouvé(s)
+                {% if pagination.pages > 1 %}
+                    (Page {{ pagination.page }} sur {{ pagination.pages }})
+                {% endif %}
+            </span>
+        </div>
+        
+        <!-- Products Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><a href="#" class="sortable" onclick="sort('id')">ID <span class="sort-icon">↕️</span></a></th>
+                        <th><a href="#" class="sortable" onclick="sort('nom')">Nom <span class="sort-icon">↕️</span></a></th>
+                        <th><a href="#" class="sortable" onclick="sort('code')">Code <span class="sort-icon">↕️</span></a></th>
+                        <th>Unité</th>
+                        <th>Catégorie</th>
+                        <th><a href="#" class="sortable" onclick="sort('tva')">TVA <span class="sort-icon">↕️</span></a></th>
+                        <th>TC</th>
+                        <th>PF</th>
+                        <th>Stockable</th>
+                        <th><a href="#" class="sortable" onclick="sort('pv_ttc')">Prix TTC <span class="sort-icon">↕️</span></a></th>
+
+                        <th><a href="#" class="sortable" onclick="sort('stock_actuel')">Stock <span class="sort-icon">↕️</span></a></th>
+                        <th><a href="#" class="sortable" onclick="sort('stock_minimum')">Stock Min <span class="sort-icon">↕️</span></a></th>
+
+                        <th><a href="#" class="sortable" onclick="sort('date_creation')">Date <span class="sort-icon">↕️</span></a></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for produit in produits %}
+                    <tr>
+                        <td>{{ produit.id }}</td>
+                        <td><strong>{{ produit.nom }}</strong></td>
+                        <td>{{ produit.code or '-' }}</td>
+                        <td>
+                            {{ produit.unite_mesure.nom }}
+                            {% if produit.unite_mesure.symbole %}
+                                <small>({{ produit.unite_mesure.symbole }})</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-info">{{ produit.categorie.nom }}</span>
+                        </td>
+                        <td>{{ produit.tva }}%</td>
+                        <td>
+                            {% if produit.tc == 'OUI' %}
+                                <span class="badge badge-success">OUI</span>
+                            {% else %}
+                                <span class="badge badge-danger">NON</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if produit.pf == 'OUI' %}
+                                <span class="badge badge-success">OUI</span>
+                            {% else %}
+                                <span class="badge badge-danger">NON</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if produit.article_stockable %}
+                                <span class="badge badge-success">✓</span>
+                            {% else %}
+                                <span class="badge badge-danger">✗</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ "{:,.0f}".format(produit.pv_ttc).replace(',', ' ') }} FBU</strong></td>
+
+                        <td>
+    {% set stock_actuel = produit.stock_actuel if produit.stock_actuel is not none else 0 %}
+    <span class="badge {% if stock_actuel <= 0 %}badge-danger{% elif stock_actuel <= (produit.stock_minimum if produit.stock_minimum is not none else 0) %}badge-warning{% else %}badge-success{% endif %}">
+        {{ stock_actuel }}
+        {% if produit.unite_mesure and produit.unite_mesure.symbole %}
+            {{ produit.unite_mesure.symbole }}
+        {% endif %}
+    </span>
+</td>
+<td>
+    {% set stock_minimum = produit.stock_minimum if produit.stock_minimum is not none else 0 %}
+    {{ stock_minimum }}
+    {% if produit.unite_mesure and produit.unite_mesure.symbole %}
+        {{ produit.unite_mesure.symbole }}
+    {% endif %}
+</td>
+
+                        <td>{{ produit.date_creation.strftime('%d/%m/%Y') if produit.date_creation else '-' }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('produit_detail', id=produit.id) }}" class="action-btn btn-info" title="Voir">👁️</a>
+                                <a href="{{ url_for('produit_edit', id=produit.id) }}" class="action-btn btn-warning" title="Modifier">✏️</a>
+                                <button onclick="deleteProduct({{ produit.id }})" class="action-btn btn-danger" title="Supprimer">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="12" style="text-align: center; padding: 40px;">
+                            <p style="color: #6c757d; font-size: 16px;">Aucun produit trouvé</p>
+                            <a href="{{ url_for('produit_new') }}" class="btn btn-success">➕ Créer un produit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            <!-- First page -->
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('produits_list', page=1, search=search_term, categorie_id=selected_categorie, unite_id=selected_unite, tc=selected_tc, pf=selected_pf, stockable=selected_stockable, sort_by=sort_by, sort_order=sort_order, per_page=per_page) }}" class="page-link">⏮️</a>
+            <a href="{{ url_for('produits_list', page=pagination.prev_num, search=search_term, categorie_id=selected_categorie, unite_id=selected_unite, tc=selected_tc, pf=selected_pf, stockable=selected_stockable, sort_by=sort_by, sort_order=sort_order, per_page=per_page) }}" class="page-link">◀️</a>
+            {% else %}
+            <span class="page-link disabled">⏮️</span>
+            <span class="page-link disabled">◀️</span>
+            {% endif %}
+            
+            <!-- Page numbers -->
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                        <span class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </span>
+                    {% else %}
+                        <a href="{{ url_for('produits_list', page=page_num, search=search_term, categorie_id=selected_categorie, unite_id=selected_unite, tc=selected_tc, pf=selected_pf, stockable=selected_stockable, sort_by=sort_by, sort_order=sort_order, per_page=per_page) }}" class="page-link">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="page-link">...</span>
+                {% endif %}
+            {% endfor %}
+            
+            <!-- Last page -->
+            {% if pagination.has_next %}
+            <a href="{{ url_for('produits_list', page=pagination.next_num, search=search_term, categorie_id=selected_categorie, unite_id=selected_unite, tc=selected_tc, pf=selected_pf, stockable=selected_stockable, sort_by=sort_by, sort_order=sort_order, per_page=per_page) }}" class="page-link">▶️</a>
+            <a href="{{ url_for('produits_list', page=pagination.pages, search=search_term, categorie_id=selected_categorie, unite_id=selected_unite, tc=selected_tc, pf=selected_pf, stockable=selected_stockable, sort_by=sort_by, sort_order=sort_order, per_page=per_page) }}" class="page-link">⏭️</a>
+            {% else %}
+            <span class="page-link disabled">▶️</span>
+            <span class="page-link disabled">⏭️</span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+    // Sort function
+    function sort(column) {
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get('sort_by');
+        const currentOrder = url.searchParams.get('sort_order');
+        
+        let newOrder = 'asc';
+        if (currentSort === column && currentOrder === 'asc') {
+            newOrder = 'desc';
+        }
+        
+        url.searchParams.set('sort_by', column);
+        url.searchParams.set('sort_order', newOrder);
+        url.searchParams.set('page', '1'); // Reset to first page on sort
+        
+        window.location.href = url.toString();
+    }
+    
+    // Delete function
+    function deleteProduct(id) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.')) {
+            fetch('/produit/' + id + '/delete', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    return response.json().then(data => {
+                        alert('Erreur: ' + (data.message || 'Impossible de supprimer le produit'));
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Une erreur est survenue lors de la suppression');
+            });
+        }
+    }
+    
+    // Auto-submit form when filters change
+    document.querySelectorAll('#filterForm select').forEach(select => {
+        select.addEventListener('change', function() {
+            if (this.id !== 'per_page') { // per_page already has onchange
+                document.getElementById('filterForm').submit();
+            }
+        });
+    });
+    
+    // Debounce search input
+    let searchTimeout;
+    document.getElementById('search').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            document.getElementById('filterForm').submit();
+        }, 500);
+    });
+    </script>
+
+{% endblock %}

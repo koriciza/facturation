@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📏 Unités de Mesure</h2>
+        <a href="{{ url_for('unite_new') }}" class="btn btn-success">➕ Nouvelle Unité</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Symbole</th>
+                    <th>Description</th>
+                    <th>Date création</th>
+                    <th>Produits</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for unite in unites %}
+                <tr>
+                    <td>{{ unite.id }}</td>
+                    <td><strong>{{ unite.nom }}</strong></td>
+                    <td>{{ unite.symbole or '-' }}</td>
+                    <td>{{ unite.description or '-' }}</td>
+                    <td>{{ unite.date_creation.strftime('%d/%m/%Y') if unite.date_creation else '-' }}</td>
+                    <td>{{ unite.produits|length }}</td>
+                    <td>
+                        <a href="{{ url_for('unite_edit', id=unite.id) }}" class="btn btn-warning btn-sm">✏️</a>
+                        <form method="post" action="{{ url_for('unite_delete', id=unite.id) }}" style="display: inline;" onsubmit="return confirm('Supprimer cette unité ?');">
+                            <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -24,7 +24,7 @@
                     <td><strong>{{ facture.numero }}</strong></td>
                     <td>{{ facture.date.strftime('%d/%m/%Y') }}</td>
                     <td>{{ facture.client.nom }} {{ facture.client.prenom }}</td>
-                    <td><strong>{{ "%.2f"|format(facture.total) }} €</strong></td>
+                    <td><strong>{{ "{:,.0f}".format(facture.total).replace(',', ' ') }} FBU </strong></td>
                     <td>
                         <span style="padding: 5px 10px; border-radius: 5px; background: {% if facture.etat == 'Payée' %}#c6f6d5{% elif facture.etat == 'En attente' %}#fed7d7{% else %}#fed7d7{% endif %};">
                             {{ facture.etat }}

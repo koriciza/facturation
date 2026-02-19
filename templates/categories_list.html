@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📁 Catégories</h2>
+        <a href="{{ url_for('categorie_new') }}" class="btn btn-success">➕ Nouvelle Catégorie</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Description</th>
+                    <th>Date création</th>
+                    <th>Produits</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in categories %}
+                <tr>
+                    <td>{{ cat.id }}</td>
+                    <td><strong>{{ cat.nom }}</strong></td>
+                    <td>{{ cat.description or '-' }}</td>
+                    <td>{{ cat.date_creation.strftime('%d/%m/%Y') if cat.date_creation else '-' }}</td>
+                   
+                    <td>{{ cat.produits|length }}</td>
+                    <td>
+                        <a href="{{ url_for('categorie_edit', id=cat.id) }}" class="btn btn-warning btn-sm">✏️</a>
+                        <form method="post" action="{{ url_for('categorie_delete', id=cat.id) }}" style="display: inline;" onsubmit="return confirm('Supprimer cette catégorie ?');">
+                            <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

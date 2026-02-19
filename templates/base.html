@@ -10,12 +10,22 @@
     <header class="header">
         <div class="container">
             <h1>📄 Facturier Électronique</h1>
-            <nav>
-                <a href="{{ url_for('index') }}">🏠 Accueil</a>
-                <a href="{{ url_for('clients_list') }}">👥 Clients</a>
-                <a href="{{ url_for('factures_list') }}">📋 Factures</a>
-               
-            </nav>
+           <nav>
+            
+            <a href="{{ url_for('index') }}">🏠 Accueil</a>
+            <a href="{{ url_for('clients_list') }}">👥 Clients</a>
+            <a href="{{ url_for('produits_list') }}">📦 Produits</a>
+            <a href="{{ url_for('stock_list') }}">📊 Stocks</a>
+            <a href="{{ url_for('approvisionnements_list') }}">📦 Approvisionnements</a>
+            <a href="{{ url_for('categories_list') }}">📁 Catégories</a>
+            <a href="{{ url_for('unites_list') }}">📏 Unités</a>
+            <a href="{{ url_for('factures_list') }}">📋 Factures</a>
+
+            <!--
+            <a href="{{ url_for('client_new') }}">➕ Nouveau Client</a>
+            <a href="{{ url_for('produit_new') }}">➕ Nouveau Produit</a> 
+            <a href="{{ url_for('facture_new') }}">➕ Nouvelle Facture</a>-->
+        </nav>
         </div>
     </header>
     

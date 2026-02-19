@@ -47,10 +47,13 @@
                         <div class="product-fields">
                             <div class="form-group">
                                 <label>Produit :</label>
+                                <!-- In the product selection part, update the select options -->
                                 <select name="produit_id[]" required>
                                     <option value="">Choisir</option>
                                     {% for produit in produits %}
-                                    <option value="{{ produit.id }}" {% if ligne.produit_id == produit.id %}selected{% endif %}>{{ produit.nom }}</option>
+                                    <option value="{{ produit.id }}" data-prix="{{ produit.pv_ttc }}">
+                                        {{ produit.nom }} ({{ produit.code or 'N/A' }}) - {{ produit.pv_ttc }} €
+                                    </option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -222,5 +225,19 @@
         
         calculerTotal();
     });
+
+
+    select.addEventListener('change', function() {
+    var selectedOption = this.options[this.selectedIndex];
+    if (selectedOption.value) {
+        // If you have data-prix attribute, auto-fill the price
+        var prix = selectedOption.getAttribute('data-prix');
+        if (prix) {
+            prixInput.value = prix;
+            updateLineTotal();
+        }
+    }
+});
+
 </script>
 {% endblock %}

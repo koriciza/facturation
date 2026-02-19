@@ -1,0 +1,218 @@
+<!-- templates/stock_ajuster.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>⚖️ Ajuster le stock - {{ produit.nom }}</h2>
+            <div>
+                <a href="{{ url_for('stock_mouvements', produit_id=produit.id) }}" class="btn btn-info">📊 Voir les mouvements</a>
+                <a href="{{ url_for('stock_list') }}" class="btn btn-primary">↩️ Retour au stock</a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <!-- Current Stock Information -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <h3>Informations actuelles</h3>
+                
+                {% set stock_actuel = produit.stock_actuel if produit.stock_actuel is not none else 0 %}
+                {% set stock_minimum = produit.stock_minimum if produit.stock_minimum is not none else 0 %}
+                
+                <table style="width: 100%;">
+                    <tr>
+                        <td><strong>Stock actuel :</strong></td>
+                        <td>
+                            <span style="font-size: 1.2rem; font-weight: bold; 
+                                       {% if stock_actuel <= 0 %}color: #dc3545;
+                                       {% elif stock_actuel <= stock_minimum %}color: #ffc107;
+                                       {% else %}color: #28a745;{% endif %}">
+                                {{ stock_actuel }}
+                                {% if produit.unite_mesure and produit.unite_mesure.symbole %}
+                                    {{ produit.unite_mesure.symbole }}
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Stock minimum :</strong></td>
+                        <td>{{ stock_minimum }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Unité de mesure :</strong></td>
+                        <td>{{ produit.unite_mesure.nom if produit.unite_mesure else '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Adjustment Form -->
+            <form method="POST" action="{{ url_for('stock_ajuster', produit_id=produit.id) }}" onsubmit="return confirm('Confirmer l\'ajustement du stock?')">
+                <h3>Nouvel ajustement</h3>
+                
+                <div class="form-group">
+                    <label for="nouvelle_quantite">Nouvelle quantité en stock <span style="color: #e53e3e;">*</span></label>
+                    <input type="number" id="nouvelle_quantite" name="nouvelle_quantite" 
+                           value="{{ stock_actuel }}" 
+                           step="0.01" min="0" required 
+                           style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 16px;">
+                    <small style="color: #718096;">Entrez la nouvelle quantité totale en stock</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="commentaire">Commentaire / Raison de l'ajustement</label>
+                    <textarea id="commentaire" name="commentaire" rows="3" 
+                              style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 16px;"
+                              placeholder="Ex: Inventaire, correction d'erreur, perte, etc."></textarea>
+                </div>
+                
+                <!-- Preview of change -->
+                <div style="background: #e8f4fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h4>Aperçu du changement</h4>
+                    <div id="preview" style="font-size: 1.1rem;">
+                        <span>Stock actuel: <strong id="current-stock">{{ stock_actuel }}</strong></span>
+                        <span style="margin: 0 10px;">→</span>
+                        <span>Nouveau stock: <strong id="new-stock-display">{{ stock_actuel }}</strong></span>
+                        <br>
+                        <span id="change-message" style="color: #28a745;">Aucun changement</span>
+                    </div>
+                </div>
+                
+                <div class="form-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <a href="{{ url_for('stock_list') }}" class="btn btn-warning">Annuler</a>
+                    <button type="submit" class="btn btn-success">✅ Confirmer l'ajustement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Live preview of stock change
+    const input = document.getElementById('nouvelle_quantite');
+    const currentStock = parseFloat('{{ stock_actuel }}');
+    const newStockDisplay = document.getElementById('new-stock-display');
+    const changeMessage = document.getElementById('change-message');
+    
+    input.addEventListener('input', function() {
+        const newValue = parseFloat(this.value) || 0;
+        newStockDisplay.textContent = newValue;
+        
+        const difference = newValue - currentStock;
+        
+        if (Math.abs(difference) < 0.01) {
+            changeMessage.textContent = 'Aucun changement';
+            changeMessage.style.color = '#6c757d';
+        } else if (difference > 0) {
+            changeMessage.textContent = `+${difference} (entrée en stock)`;
+            changeMessage.style.color = '#28a745';
+        } else {
+            changeMessage.textContent = `${difference} (sortie de stock)`;
+            changeMessage.style.color = '#dc3545';
+        }
+    });
+</script>
+
+<style>
+    .container {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+    
+    .card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .card-header h2 {
+        margin: 0;
+        color: #2c3e50;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #218838;
+    }
+    
+    .btn-warning {
+        background: #ffc107;
+        color: #212529;
+    }
+    
+    .btn-warning:hover {
+        background: #e0a800;
+    }
+    
+    .btn-info {
+        background: #17a2b8;
+        color: white;
+    }
+    
+    .btn-info:hover {
+        background: #138496;
+    }
+    
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    table td {
+        padding: 8px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    table tr:last-child td {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}

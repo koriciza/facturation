@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📦 {{ produit.nom }}</h2>
+        <div>
+            <a href="{{ url_for('produit_edit', id=produit.id) }}" class="btn btn-warning">✏️ Modifier</a>
+            <a href="{{ url_for('produits_list') }}" class="btn btn-primary">↩️ Retour</a>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <div class="card" style="margin: 0;">
+            <h3>📋 Informations générales</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <td><strong>Nom de l'article :</strong></td>
+                    <td>{{ produit.nom }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Code / Référence :</strong></td>
+                    <td>{{ produit.code or '-' }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Unité de mesure :</strong></td>
+                    <td>{{ produit.unite_mesure }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Catégorie :</strong></td>
+                    <td>{{ produit.categorie }}</td>
+                </tr>
+
+                <!-- In the "Informations générales" card, add after Catégorie -->
+<tr>
+    <td><strong>Stock actuel :</strong></td>
+    <td>
+        {% if produit.stock_actuel is not none %}
+            {{ produit.stock_actuel }}
+            {% if produit.unite_mesure %}
+                {{ produit.unite_mesure.symbole or '' }}
+            {% endif %}
+        {% else %}
+            0
+        {% endif %}
+    </td>
+</tr>
+<tr>
+    <td><strong>Stock minimum :</strong></td>
+    <td>
+        {% if produit.stock_minimum is not none %}
+            {{ produit.stock_minimum }}
+            {% if produit.unite_mesure %}
+                {{ produit.unite_mesure.symbole or '' }}
+            {% endif %}
+        {% else %}
+            0
+        {% endif %}
+    </td>
+</tr>
+<tr>
+    <td><strong>État du stock :</strong></td>
+    <td>
+        {% set stock_actuel = produit.stock_actuel if produit.stock_actuel is not none else 0 %}
+        {% set stock_minimum = produit.stock_minimum if produit.stock_minimum is not none else 0 %}
+        
+        {% if stock_actuel <= 0 %}
+            <span style="color: #dc3545; font-weight: bold;">⚠️ Rupture de stock</span>
+        {% elif stock_actuel <= stock_minimum %}
+            <span style="color: #ffc107; font-weight: bold;">⚠️ Stock bas</span>
+        {% else %}
+            <span style="color: #28a745; font-weight: bold;">✓ Stock normal</span>
+        {% endif %}
+    </td>
+</tr>
+            </table>
+        </div>
+        
+        <div class="card" style="margin: 0;">
+            <h3>💰 Taxes et prix</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <td><strong>TVA :</strong></td>
+                    <td>{{ produit.tva }}%</td>
+                </tr>
+                <tr>
+                    <td><strong>TC (Taxe Complémentaire) :</strong></td>
+                    <td>{{ produit.tc }}%</td>
+                </tr>
+                <tr>
+                    <td><strong>PF (Péage Fiscal) :</strong></td>
+                    <td>{{ produit.pf }}%</td>
+                </tr>
+                <tr>
+                    <td><strong>Article stockable :</strong></td>
+                    <td>
+                        {% if produit.article_stockable %}
+                        <span style="color: #48bb78;">✓ Oui</span>
+                        {% else %}
+                        <span style="color: #f56565;">✗ Non</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>PV TTC :</strong></td>
+                    <td><strong style="font-size: 1.2rem;">{{ "%.2f"|format(produit.pv_ttc) }} €</strong></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 20px;">
+        <h3>📊 Statistiques</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center;">
+            <div>
+                <h4>Total facturé</h4>
+                <p style="font-size: 1.5rem; color: #667eea;">0.00 €</p>
+            </div>
+            <div>
+                <h4>Quantité vendue</h4>
+                <p style="font-size: 1.5rem; color: #48bb78;">0</p>
+            </div>
+            <div>
+                <h4>Nombre de factures</h4>
+                <p style="font-size: 1.5rem; color: #ed8936;">0</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

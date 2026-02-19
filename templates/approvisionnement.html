@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📦 Approvisionnement {{ appro.numero }}</h2>
+        <div>
+            <a href="{{ url_for('approvisionnements_list') }}" class="btn btn-primary">↩️ Retour</a>
+            {% if appro.statut == 'en_attente' %}
+            <form method="post" action="{{ url_for('approvisionnement_recevoir', id=appro.id) }}" style="display: inline;">
+                <button type="submit" class="btn btn-success" onclick="return confirm('Confirmer la réception? Le stock sera mis à jour.')">✅ Marquer comme reçu</button>
+            </form>
+            <form method="post" action="{{ url_for('approvisionnement_annuler', id=appro.id) }}" style="display: inline;">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Annuler cet approvisionnement?')">❌ Annuler</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
+        <div class="card" style="margin: 0;">
+            <h4>📅 Informations</h4>
+            <p><strong>Date:</strong> {{ appro.date_approvisionnement.strftime('%d/%m/%Y %H:%M') }}</p>
+            <p><strong>Statut:</strong> 
+                {% if appro.statut == 'recu' %}
+                <span style="color: #48bb78;">✅ Reçu</span>
+                {% elif appro.statut == 'en_attente' %}
+                <span style="color: #ed8936;">⏳ En attente</span>
+                {% else %}
+                <span style="color: #f56565;">❌ Annulé</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="card" style="margin: 0;">
+            <h4>🏢 Fournisseur</h4>
+            <p><strong>Nom:</strong> {{ appro.fournisseur or 'Non spécifié' }}</p>
+            <p><strong>Référence:</strong> {{ appro.reference_fournisseur or '-' }}</p>
+        </div>
+        
+        <div class="card" style="margin: 0;">
+            <h4>💰 Totaux</h4>
+            <p><strong>Total HT:</strong> {{ "%.2f"|format(appro.total_ht) }} €</p>
+            <p><strong>Total TTC:</strong> {{ "%.2f"|format(appro.total_ttc) }} €</p>
+        </div>
+    </div>
+    
+    <h3>📦 Produits</h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Quantité</th>
+                    <th>Prix unitaire HT</th>
+                    <th>TVA</th>
+                    <th>Total HT</th>
+                    <th>Total TTC</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in appro.lignes %}
+                <tr>
+                    <td>{{ ligne.produit.nom }}</td>
+                    <td>{{ ligne.quantite }}</td>
+                    <td>{{ "%.2f"|format(ligne.prix_unitaire_ht) }} €</td>
+                    <td>{{ ligne.tva }}%</td>
+                    <td>{{ "%.2f"|format(ligne.total_ht) }} €</td>
+                    <td><strong>{{ "%.2f"|format(ligne.total_ttc) }} €</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" style="text-align: right;"><strong>TOTAUX:</strong></td>
+                    <td><strong>{{ "%.2f"|format(appro.total_ht) }} €</strong></td>
+                    <td><strong>{{ "%.2f"|format(appro.total_ttc) }} €</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    
+    {% if appro.notes %}
+    <div class="card" style="margin-top: 20px;">
+        <h4>📝 Notes</h4>
+        <p>{{ appro.notes }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
