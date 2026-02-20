@@ -1,33 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 
-
-
-   
-    <style>
-        * { box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0;
-            padding: 20px;
-            background: #f8f9fa;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-        h1 { 
-            color: #2c3e50;
-            margin-top: 0;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 10px;
-        }
-        
-        /* Filter Section */
+<style>
+            /* Filter Section */
         .filters-panel {
             background: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -44,6 +19,7 @@
         .filter-group {
             flex: 1 1 200px;
         }
+
         .filter-group label {
             display: block;
             margin-bottom: 5px;
@@ -59,11 +35,14 @@
             border-radius: 4px;
             font-size: 14px;
         }
+
         .filter-actions {
             display: flex;
             gap: 10px;
             align-items: flex-end;
         }
+
+        
         
         /* Buttons */
         .btn {
@@ -76,6 +55,8 @@
             display: inline-block;
             transition: background-color 0.2s;
         }
+
+        
         .btn-primary {
             background: #007bff;
             color: white;
@@ -90,6 +71,8 @@
         .btn-success:hover {
             background: #218838;
         }
+
+        
         .btn-secondary {
             background: #6c757d;
             color: white;
@@ -104,6 +87,8 @@
         .btn-info:hover {
             background: #138496;
         }
+
+        
         .btn-warning {
             background: #ffc107;
             color: #212529;
@@ -118,17 +103,13 @@
         .btn-danger:hover {
             background: #c82333;
         }
-        
-        /* Table */
-        .table-container {
-            overflow-x: auto;
-            margin-bottom: 20px;
-        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
         }
+
         th {
             background: #343a40;
             color: white;
@@ -138,6 +119,7 @@
             position: sticky;
             top: 0;
         }
+
         td {
             padding: 10px 12px;
             border-bottom: 1px solid #dee2e6;
@@ -145,8 +127,8 @@
         tr:hover {
             background: #f8f9fa;
         }
-        
-        /* Sortable headers */
+
+                /* Sortable headers */
         .sortable {
             cursor: pointer;
             color: white;
@@ -155,7 +137,8 @@
         .sortable:hover {
             text-decoration: underline;
         }
-        .sort-icon {
+
+                .sort-icon {
             margin-left: 5px;
             font-size: 12px;
         }
@@ -253,15 +236,64 @@
             text-decoration: none;
             color: white;
         }
-    </style>
+
+
+          /* Make the table a grid */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* This ensures widths are respected */
+}
+
+/* Define column widths */
+th:nth-child(1) { width:  70px; }    /* ID - fixed width */
+th:nth-child(2) { width:  200px; }     /* Nom - percentage */
+th:nth-child(3) { width: 100px; }   /* Code - fixed width */
+th:nth-child(4) { width: 80px; }    /* Unité - fixed width */
+th:nth-child(5) { width: 120px; }   /* Catégorie - fixed width */
+th:nth-child(6) { width: 80px; }    /* TVA - fixed width */
+th:nth-child(7) { width: 80px; }    /* TC - fixed width */
+th:nth-child(8) { width: 80px; }    /* PF - fixed width */
+th:nth-child(9) { width: 90px; }    /* Stockable - fixed width */
+th:nth-child(10) { width: 200px; }  /* Prix TTC - fixed width */
+th:nth-child(11) { width: 100px; }   /* Stock - fixed width */
+th:nth-child(12) { width: 100px; }   /* Stock Min - fixed width */
+th:nth-child(13) { width: 120px; }  /* Date - fixed width */
+th:nth-child(14) { width: 120px; }  /* Actions - fixed width */
+
+/* Ensure content doesn't wrap unnecessarily */
+td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Allow specific columns to wrap if needed */
+td:nth-child(2) { /* Nom column */
+    white-space: normal;
+}
+
+
+
+
+
+
+
+
+
+
+</style>
+
+   
+    
 </head>
 <body>
-    <div class="container">
-        <h1>📦 Gestion des Produits</h1>
+    <div class="card">
+        <h1>📦 Gestion des Articles</h1>
         
         <!-- Action Buttons -->
         <div style="margin-bottom: 20px;">
-            <a href="{{ url_for('produit_new') }}" class="btn btn-success">➕ Nouveau Produit</a>
+            <a href="{{ url_for('produit_new') }}" class="btn btn-success">➕ Nouveau Article</a>
             <a href="{{ url_for('produits_list') }}" class="btn btn-secondary">⟲ Réinitialiser les filtres</a>
         </div>
         
@@ -362,7 +394,7 @@
         </div>
         
         <!-- Products Table -->
-        <div class="table-container">
+        <div class="table-responsive">
             <table>
                 <thead>
                     <tr>

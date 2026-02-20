@@ -1,7 +1,7 @@
 <!-- stock_list.html -->
 {% extends "base.html" %}
 {% block content %}
-<div class="container">
+<div class="card">
     <h1>📊 Gestion des Stocks</h1>
     
     <div style="margin-bottom: 20px;">
@@ -9,7 +9,7 @@
         <a href="{{ url_for('approvisionnements_list') }}" class="btn btn-primary">📦 Approvisionnements</a>
     </div>
     
-    <div class="table-container">
+    <div class="table-responsive">
         <table>
             <thead>
                 <tr>

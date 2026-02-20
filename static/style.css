@@ -344,3 +344,186 @@ select:focus {
 .gap-10 { gap: 10px; }
 .justify-between { justify-content: space-between; }
 .align-center { align-items: center; }
+
+
+
+/* ===== HEADER & NAVIGATION ===== */
+.header {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 15px 20px;
+}
+
+/* Header content with flexbox for title and hamburger */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.header h1 {
+    color: #667eea;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+/* ===== HAMBURGER MENU BUTTON ===== */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1000;
+}
+
+.hamburger {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: #667eea;
+    position: relative;
+    transition: all 0.3s ease;
+    border-radius: 3px;
+}
+
+.hamburger::before,
+.hamburger::after {
+    content: '';
+    position: absolute;
+    width: 25px;
+    height: 3px;
+    background: #667eea;
+    transition: all 0.3s ease;
+    border-radius: 3px;
+    left: 0;
+}
+
+.hamburger::before {
+    transform: translateY(-8px);
+}
+
+.hamburger::after {
+    transform: translateY(8px);
+}
+
+/* Hamburger animation when active (turns into X) */
+.menu-toggle.active .hamburger {
+    background: transparent;
+}
+
+.menu-toggle.active .hamburger::before {
+    transform: rotate(45deg);
+}
+
+.menu-toggle.active .hamburger::after {
+    transform: rotate(-45deg);
+}
+
+/* ===== NAVIGATION MENU ===== */
+.nav-menu {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    transition: all 0.3s ease;
+}
+
+.nav-menu a {
+    color: #555;
+    font-weight: 500;
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+}
+
+.nav-menu a:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* ===== RESPONSIVE STYLES ===== */
+@media screen and (max-width: 1024px) {
+    .container {
+        padding: 15px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .header .container {
+        padding: 10px 15px;
+    }
+
+    /* Show hamburger button on mobile */
+    .menu-toggle {
+        display: block;
+    }
+
+    /* Hide navigation menu by default on mobile */
+    .nav-menu {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+        padding: 20px 0;
+        margin-top: 15px;
+        border-top: 2px solid #f0f0f0;
+    }
+
+    /* Show menu when active */
+    .nav-menu.show {
+        display: flex;
+    }
+
+    /* Style mobile menu links */
+    .nav-menu a {
+        width: 100%;
+        padding: 12px 20px;
+        justify-content: center;
+        background: #f8f9ff;
+        border-radius: 8px;
+    }
+
+    .nav-menu a:hover {
+        transform: translateX(5px);
+        background: #667eea;
+        color: white;
+    }
+
+    /* Adjust header title size on mobile */
+    .header h1 {
+        font-size: 1.4rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .header h1 {
+        font-size: 1.2rem;
+    }
+    
+    .menu-toggle {
+        padding: 8px;
+    }
+    
+    .hamburger,
+    .hamburger::before,
+    .hamburger::after {
+        width: 22px;
+    }
+}
