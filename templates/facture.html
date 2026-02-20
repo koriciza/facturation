@@ -16,7 +16,20 @@
             <p><strong>Date :</strong> {{ facture.date.strftime('%d/%m/%Y') }}</p>
             <p><strong>N° Facture :</strong> {{ facture.numero }}</p>
             <p><strong>État :</strong> 
-                <span style="padding: 5px 10px; border-radius: 5px; background: {% if facture.etat == 'Payée' %}#c6f6d5{% elif facture.etat == 'En attente' %}#fed7d7{% else %}#fed7d7{% endif %};">
+                <style>
+                .etat-badge {
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                }
+                .etat-paye { background: #c6f6d5; }
+                .etat-attente { background: #fed7d7; }
+                .etat-impaye { background: #fed7d7; }
+                </style>
+
+                <span class="etat-badge 
+                    {% if facture.etat == 'Payée' %}etat-paye
+                    {% elif facture.etat == 'En attente' %}etat-attente
+                    {% else %}etat-impaye{% endif %}">
                     {{ facture.etat }}
                 </span>
             </p>

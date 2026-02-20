@@ -25,8 +25,9 @@
                     <td><strong>{{ appro.numero }}</strong></td>
                     <td>{{ appro.date_approvisionnement.strftime('%d/%m/%Y') }}</td>
                     <td>{{ appro.fournisseur or '-' }}</td>
-                    <td>{{ "%.2f"|format(appro.total_ht) }} €</td>
-                    <td>{{ "%.2f"|format(appro.total_ttc) }} €</td>
+                    <td>{{ "{:,.0f}".format(appro.total_ht).replace(',', ' ') }} FBU</td>
+                    <td>{{ "{:,.0f}".format(appro.total_ttc).replace(',', ' ') }} FBU</td>
+                    
                     <td>
                         {% if appro.statut == 'recu' %}
                         <span style="background: #48bb78; color: white; padding: 3px 8px; border-radius: 3px;">Reçu</span>

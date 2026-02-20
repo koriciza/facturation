@@ -44,9 +44,9 @@ class Produit(db.Model):
     
     # Tax fields
     tva = db.Column(db.Float, nullable=False, default=0.0)
-    tc = db.Column(db.Float, nullable=False, default=0.0)
-    pf = db.Column(db.Float, nullable=False, default=0.0)
-    article_stockable = db.Column(db.Boolean, default=True)
+    tc = db.Column(db.String(5), nullable=False)
+    pf = db.Column(db.String(5), nullable=False)
+    article_stockable = db.Column(db.String(5), nullable=False)
     pv_ttc = db.Column(db.Float, nullable=False, default=0.0)
     stock_actuel = db.Column(db.Integer, default=0)  # Current stock (calculated)
     stock_minimum = db.Column(db.Integer, default=0)  # Alert threshold

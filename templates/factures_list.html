@@ -26,7 +26,23 @@
                     <td>{{ facture.client.nom }} {{ facture.client.prenom }}</td>
                     <td><strong>{{ "{:,.0f}".format(facture.total).replace(',', ' ') }} FBU </strong></td>
                     <td>
-                        <span style="padding: 5px 10px; border-radius: 5px; background: {% if facture.etat == 'Payée' %}#c6f6d5{% elif facture.etat == 'En attente' %}#fed7d7{% else %}#fed7d7{% endif %};">
+                        
+                        <style>
+                        .etat-badge {
+                            padding: 5px 10px;
+                            border-radius: 5px;
+                            display: inline-block;
+                        }
+                        .etat-paye {
+                            background: #c6f6d5;
+                        }
+                        .etat-attente, .etat-impaye {
+                            background: #fed7d7;
+                        }
+                        </style>
+
+                        {% set badge_class = 'etat-paye' if facture.etat == 'Payée' else 'etat-attente' %}
+                        <span class="etat-badge {{ badge_class }}">
                             {{ facture.etat }}
                         </span>
                     </td>

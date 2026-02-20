@@ -445,7 +445,7 @@
                             <div class="action-buttons">
                                 <a href="{{ url_for('produit_detail', id=produit.id) }}" class="action-btn btn-info" title="Voir">👁️</a>
                                 <a href="{{ url_for('produit_edit', id=produit.id) }}" class="action-btn btn-warning" title="Modifier">✏️</a>
-                                <button onclick="deleteProduct({{ produit.id }})" class="action-btn btn-danger" title="Supprimer">🗑️</button>
+                                <button onclick="deleteProduct('{{ produit.id }}')" class="action-btn btn-danger" title="Supprimer">🗑️</button>
                             </div>
                         </td>
                     </tr>

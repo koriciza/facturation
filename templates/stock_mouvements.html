@@ -19,15 +19,15 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; text-align: center;">
                     <h3>Stock actuel</h3>
-                    <p style="font-size: 2rem; font-weight: bold; 
-                              {% if stock_actuel <= 0 %}color: #dc3545;
-                              {% elif stock_actuel <= stock_minimum %}color: #ffc107;
-                              {% else %}color: #28a745;{% endif %}">
-                        {{ stock_actuel }}
-                        {% if produit.unite_mesure and produit.unite_mesure.symbole %}
-                            {{ produit.unite_mesure.symbole }}
-                        {% endif %}
-                    </p>
+                   
+                {% set stock_status = 'danger' if stock_actuel <= 0 else 'warning' if stock_actuel <= stock_minimum else 'normal' %}
+
+                <p class="stock-display" data-stock="{{ stock_status }}">
+                    {{ stock_actuel }}
+                    {% if produit.unite_mesure and produit.unite_mesure.symbole %}
+                        {{ produit.unite_mesure.symbole }}
+                    {% endif %}
+                </p>
                 </div>
                 
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; text-align: center;">
@@ -137,5 +137,14 @@
     tr:hover {
         background: #f8f9fa;
     }
+
+.stock-display {
+    font-size: 2rem;
+    font-weight: bold;
+}
+.stock-display[data-stock="danger"] { color: #dc3545; }
+.stock-display[data-stock="warning"] { color: #ffc107; }
+.stock-display[data-stock="normal"] { color: #28a745; }
 </style>
+
 {% endblock %}

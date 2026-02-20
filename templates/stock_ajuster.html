@@ -23,15 +23,20 @@
                     <tr>
                         <td><strong>Stock actuel :</strong></td>
                         <td>
-                            <span style="font-size: 1.2rem; font-weight: bold; 
-                                       {% if stock_actuel <= 0 %}color: #dc3545;
-                                       {% elif stock_actuel <= stock_minimum %}color: #ffc107;
-                                       {% else %}color: #28a745;{% endif %}">
-                                {{ stock_actuel }}
-                                {% if produit.unite_mesure and produit.unite_mesure.symbole %}
-                                    {{ produit.unite_mesure.symbole }}
-                                {% endif %}
-                            </span>
+                            
+                    <span class="stock-indicator 
+                        {% if stock_actuel <= 0 %}
+                            stock-danger
+                        {% elif stock_actuel <= stock_minimum %}
+                            stock-warning
+                        {% else %}
+                            stock-normal
+                        {% endif %}">
+                        {{ stock_actuel }}
+                        {% if produit.unite_mesure and produit.unite_mesure.symbole %}
+                            {{ produit.unite_mesure.symbole }}
+                        {% endif %}
+                    </span>
                         </td>
                     </tr>
                     <tr>
@@ -216,3 +221,19 @@
     }
 </style>
 {% endblock %}
+
+ <style>
+.stock-indicator {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+.stock-danger {
+    color: #dc3545;
+}
+.stock-warning {
+    color: #ffc107;
+}
+.stock-normal {
+    color: #28a745;
+}
+</style>

@@ -115,8 +115,9 @@
                         <td>{{ facture.date.strftime('%d/%m/%Y') }}</td>
                         <td>{{ "{:,.0f}".format(facture.total).replace(',', ' ') }} FBU</td>
                         <td>
-                            <span style="padding: 5px 10px; border-radius: 5px; background: {% if facture.etat == 'Payée' %}#c6f6d5{% else %}#fed7d7{% endif %};">
-                                {{ facture.etat }}
+                           <span class="{% if facture.etat == 'Payée' %}etat-paye{% else %}etat-impaye{% endif %}" 
+                                style="padding: 5px 10px; border-radius: 5px;">
+                                {{ facture.etat }}  
                             </span>
                         </td>
                         <td>
@@ -133,3 +134,8 @@
     </div>
 </div>
 {% endblock %}
+
+<style>
+.etat-paye { background: #c6f6d5; }
+.etat-impaye { background: #fed7d7; }
+</style>
