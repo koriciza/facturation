@@ -25,8 +25,10 @@
                     <td>
                         {% if client.type_client == 'person' %}
                         <span style="background: #667eea; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem;">👤 Personne</span>
-                        {% else %}
-                        <span style="background: #48bb78; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem;">🏢 Société</span>
+                        {% elif client.type_client == 'Société locale'  %}
+                        <span style="background: #48bb78; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem;">🏢 Société locale</span>
+                        {% else  %}
+                        <span style="background: #f6ad55; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem;">🏢 Société étrangère</span>
                         {% endif %}
                     </td>
                     <td><strong>{{ client.nom }}</strong></td>

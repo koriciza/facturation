@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <h2>📊 Rapports et Statistiques</h2>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 20px;">
+        <!-- Rapport par client -->
+        <div class="card" style="margin: 0; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 15px;">👤</div>
+            <h3>Rapport par client</h3>
+            <p style="color: #718096; margin-bottom: 20px;">
+                Consultez l'activité d'un client spécifique sur une période donnée.
+            </p>
+            <a href="{{ url_for('rapport_client') }}" class="btn btn-primary">
+                Accéder au rapport
+            </a>
+        </div>
+        
+        <!-- Rapport tous clients -->
+        <div class="card" style="margin: 0; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 15px;">👥</div>
+            <h3>Rapport tous clients</h3>
+            <p style="color: #718096; margin-bottom: 20px;">
+                Vue d'ensemble de l'activité de tous vos clients sur une période.
+            </p>
+            <a href="{{ url_for('rapport_tous_clients') }}" class="btn btn-primary">
+                Accéder au rapport
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

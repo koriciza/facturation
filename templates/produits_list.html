@@ -245,21 +245,28 @@ table {
     table-layout: fixed; /* This ensures widths are respected */
 }
 
-/* Define column widths */
-th:nth-child(1) { width:  70px; }    /* ID - fixed width */
-th:nth-child(2) { width:  200px; }     /* Nom - percentage */
-th:nth-child(3) { width: 100px; }   /* Code - fixed width */
-th:nth-child(4) { width: 80px; }    /* Unité - fixed width */
-th:nth-child(5) { width: 120px; }   /* Catégorie - fixed width */
-th:nth-child(6) { width: 80px; }    /* TVA - fixed width */
-th:nth-child(7) { width: 80px; }    /* TC - fixed width */
-th:nth-child(8) { width: 80px; }    /* PF - fixed width */
-th:nth-child(9) { width: 90px; }    /* Stockable - fixed width */
-th:nth-child(10) { width: 200px; }  /* Prix TTC - fixed width */
-th:nth-child(11) { width: 100px; }   /* Stock - fixed width */
-th:nth-child(12) { width: 100px; }   /* Stock Min - fixed width */
-th:nth-child(13) { width: 120px; }  /* Date - fixed width */
-th:nth-child(14) { width: 120px; }  /* Actions - fixed width */
+/* Define column widths - updated for new columns */
+th:nth-child(1) { width: 50px; }    /* ID */
+th:nth-child(2) { width: 200px; }   /* Nom */
+th:nth-child(3) { width: 100px; }   /* Code */
+th:nth-child(4) { width: 80px; }    /* Unité */
+th:nth-child(5) { width: 120px; }   /* Catégorie */
+th:nth-child(6) { width: 80px; }    /* TVA */
+th:nth-child(7) { width: 80px; }    /* TC */
+th:nth-child(8) { width: 80px; }    /* PF */
+th:nth-child(9) { width: 90px; }    /* Stockable */
+th:nth-child(10) { width: 170px; }   /* Prix TTC */
+th:nth-child(11) { width: 80px; }   /* Qté Initiale */
+th:nth-child(12) { width: 90px; }   /* Stock Actuel */
+th:nth-child(13) { width: 80px; }   /* Stock Min */
+th:nth-child(14) { width: 170px; }   /* PRU */
+th:nth-child(15) { width: 200px; }  /* Valeur Stock */
+th:nth-child(16) { width: 120px; }   /* Date */
+th:nth-child(17) { width: 120px; }  /* Actions */
+
+
+
+
 
 /* Ensure content doesn't wrap unnecessarily */
 td {
@@ -273,7 +280,10 @@ td:nth-child(2) { /* Nom column */
     white-space: normal;
 }
 
-
+.badge-secondary {
+    background: #e2e8f0;
+    color: #4a5568;
+}
 
 
 
@@ -392,106 +402,188 @@ td:nth-child(2) { /* Nom column */
                 {% endif %}
             </span>
         </div>
+
+        <!-- Stock Value Summary -->
+<div class="stats" style="background: #f0f9ff; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+    <span>
+        💰 Valeur totale du stock: 
+        <strong>
+            {% set total_value = 0 %}
+            {% for produit in produits %}
+                {% if produit.article_stockable == 'OUI' and produit.stock_actuel and produit.pru %}
+                    {% set total_value = total_value + (produit.stock_actuel * produit.pru) %}
+                {% endif %}
+            {% endfor %}
+            {{ "{:,.0f}".format(total_value).replace(',', ' ') }} FBU
+        </strong>
+    </span>
+    <span>
+        📦 Produits stockables: 
+        {{ produits|selectattr('article_stockable', 'equalto', 'OUI')|list|length }}
+    </span>
+</div>
         
         <!-- Products Table -->
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th><a href="#" class="sortable" onclick="sort('id')">ID <span class="sort-icon">↕️</span></a></th>
-                        <th><a href="#" class="sortable" onclick="sort('nom')">Nom <span class="sort-icon">↕️</span></a></th>
-                        <th><a href="#" class="sortable" onclick="sort('code')">Code <span class="sort-icon">↕️</span></a></th>
-                        <th>Unité</th>
-                        <th>Catégorie</th>
-                        <th><a href="#" class="sortable" onclick="sort('tva')">TVA <span class="sort-icon">↕️</span></a></th>
-                        <th>TC</th>
-                        <th>PF</th>
-                        <th>Stockable</th>
-                        <th><a href="#" class="sortable" onclick="sort('pv_ttc')">Prix TTC <span class="sort-icon">↕️</span></a></th>
-
-                        <th><a href="#" class="sortable" onclick="sort('stock_actuel')">Stock <span class="sort-icon">↕️</span></a></th>
-                        <th><a href="#" class="sortable" onclick="sort('stock_minimum')">Stock Min <span class="sort-icon">↕️</span></a></th>
-
-                        <th><a href="#" class="sortable" onclick="sort('date_creation')">Date <span class="sort-icon">↕️</span></a></th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for produit in produits %}
-                    <tr>
-                        <td>{{ produit.id }}</td>
-                        <td><strong>{{ produit.nom }}</strong></td>
-                        <td>{{ produit.code or '-' }}</td>
-                        <td>
-                            {{ produit.unite_mesure.nom }}
-                            {% if produit.unite_mesure.symbole %}
-                                <small>({{ produit.unite_mesure.symbole }})</small>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <span class="badge badge-info">{{ produit.categorie.nom }}</span>
-                        </td>
-                        <td>{{ produit.tva }}%</td>
-                        <td>
-                            {% if produit.tc == 'OUI' %}
-                                <span class="badge badge-success">OUI</span>
-                            {% else %}
-                                <span class="badge badge-danger">NON</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if produit.pf == 'OUI' %}
-                                <span class="badge badge-success">OUI</span>
-                            {% else %}
-                                <span class="badge badge-danger">NON</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if produit.article_stockable %}
-                                <span class="badge badge-success">✓</span>
-                            {% else %}
-                                <span class="badge badge-danger">✗</span>
-                            {% endif %}
-                        </td>
-                        <td><strong>{{ "{:,.0f}".format(produit.pv_ttc).replace(',', ' ') }} FBU</strong></td>
-
-                        <td>
-    {% set stock_actuel = produit.stock_actuel if produit.stock_actuel is not none else 0 %}
-    <span class="badge {% if stock_actuel <= 0 %}badge-danger{% elif stock_actuel <= (produit.stock_minimum if produit.stock_minimum is not none else 0) %}badge-warning{% else %}badge-success{% endif %}">
-        {{ stock_actuel }}
-        {% if produit.unite_mesure and produit.unite_mesure.symbole %}
-            {{ produit.unite_mesure.symbole }}
-        {% endif %}
-    </span>
-</td>
-<td>
-    {% set stock_minimum = produit.stock_minimum if produit.stock_minimum is not none else 0 %}
-    {{ stock_minimum }}
-    {% if produit.unite_mesure and produit.unite_mesure.symbole %}
-        {{ produit.unite_mesure.symbole }}
-    {% endif %}
-</td>
-
-                        <td>{{ produit.date_creation.strftime('%d/%m/%Y') if produit.date_creation else '-' }}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <a href="{{ url_for('produit_detail', id=produit.id) }}" class="action-btn btn-info" title="Voir">👁️</a>
-                                <a href="{{ url_for('produit_edit', id=produit.id) }}" class="action-btn btn-warning" title="Modifier">✏️</a>
-                                <button onclick="deleteProduct('{{ produit.id }}')" class="action-btn btn-danger" title="Supprimer">🗑️</button>
-                            </div>
-                        </td>
-                    </tr>
+        <!-- Products Table -->
+<div class="table-responsive">
+    <table>
+        <thead>
+            <tr>
+                <th><a href="#" class="sortable" onclick="sort('id')">ID <span class="sort-icon">↕️</span></a></th>
+                <th><a href="#" class="sortable" onclick="sort('nom')">Nom <span class="sort-icon">↕️</span></a></th>
+                <th><a href="#" class="sortable" onclick="sort('code')">Code <span class="sort-icon">↕️</span></a></th>
+                <th>Unité</th>
+                <th>Catégorie</th>
+                <th><a href="#" class="sortable" onclick="sort('tva')">TVA <span class="sort-icon">↕️</span></a></th>
+                <th>TC</th>
+                <th>PF</th>
+                <th>Stockable</th>
+                <th><a href="#" class="sortable" onclick="sort('pv_ttc')">Prix TTC <span class="sort-icon">↕️</span></a></th>
+                <th>Qté Initiale</th>
+                <th><a href="#" class="sortable" onclick="sort('stock_actuel')">Stock Actuel <span class="sort-icon">↕️</span></a></th>
+                <th><a href="#" class="sortable" onclick="sort('stock_minimum')">Stock Min <span class="sort-icon">↕️</span></a></th>
+                <th>PRU</th>
+                <th>Valeur Stock</th>
+                <th><a href="#" class="sortable" onclick="sort('date_creation')">Date <span class="sort-icon">↕️</span></a></th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for produit in produits %}
+            <tr>
+                <td>{{ produit.id }}</td>
+                <td><strong>{{ produit.nom }}</strong></td>
+                <td>{{ produit.code or '-' }}</td>
+                <td>
+                    {{ produit.unite_mesure.nom }}
+                    {% if produit.unite_mesure.symbole %}
+                        <small>({{ produit.unite_mesure.symbole }})</small>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge badge-info">{{ produit.categorie.nom }}</span>
+                </td>
+                <td>{{ produit.tva }}%</td>
+                <td>
+                    {% if produit.tc == 'OUI' %}
+                        <span class="badge badge-success">OUI</span>
                     {% else %}
-                    <tr>
-                        <td colspan="12" style="text-align: center; padding: 40px;">
-                            <p style="color: #6c757d; font-size: 16px;">Aucun produit trouvé</p>
-                            <a href="{{ url_for('produit_new') }}" class="btn btn-success">➕ Créer un produit</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                        <span class="badge badge-danger">NON</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if produit.pf == 'OUI' %}
+                        <span class="badge badge-success">OUI</span>
+                    {% else %}
+                        <span class="badge badge-danger">NON</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if produit.article_stockable == 'OUI' %}
+                        <span class="badge badge-success">✓</span>
+                    {% else %}
+                        <span class="badge badge-danger">✗</span>
+                    {% endif %}
+                </td>
+                <td><strong>{{ "{:,.0f}".format(produit.pv_ttc).replace(',', ' ') }} FBU</strong></td>
+                
+                <!-- Quantité Initiale -->
+                <td>
+                    {% if produit.article_stockable == 'OUI' %}
+                        {{ "%.2f"|format(produit.quantite_initiale) }}
+                        {% if produit.unite_mesure and produit.unite_mesure.symbole %}
+                            {{ produit.unite_mesure.symbole }}
+                        {% endif %}
+                    {% else %}
+                        <span class="badge badge-secondary">-</span>
+                    {% endif %}
+                </td>
+                
+                <!-- Stock Actuel with color coding -->
+                <td>
+                    {% if produit.article_stockable == 'OUI' %}
+                        {% set stock_actuel = produit.stock_actuel if produit.stock_actuel is not none else 0 %}
+                        <span class="badge 
+                            {% if stock_actuel <= 0 %}
+                                badge-danger
+                            {% elif produit.stock_minimum and stock_actuel <= produit.stock_minimum %}
+                                badge-warning
+                            {% else %}
+                                badge-success
+                            {% endif %}">
+                            {{ "%.2f"|format(stock_actuel) }}
+                            {% if produit.unite_mesure and produit.unite_mesure.symbole %}
+                                {{ produit.unite_mesure.symbole }}
+                            {% endif %}
+                        </span>
+                    {% else %}
+                        <span class="badge badge-secondary">N/A</span>
+                    {% endif %}
+                </td>
+                
+                <!-- Stock Minimum -->
+                <td>
+                    {% if produit.article_stockable == 'OUI' and produit.stock_minimum %}
+                        {{ "%.2f"|format(produit.stock_minimum) }}
+                        {% if produit.unite_mesure and produit.unite_mesure.symbole %}
+                            {{ produit.unite_mesure.symbole }}
+                        {% endif %}
+                    {% else %}
+                        <span class="badge badge-secondary">-</span>
+                    {% endif %}
+                </td>
+                
+                <!-- PRU (Prix de Revient Unitaire) -->
+                <td>
+                    {% if produit.article_stockable == 'OUI' and produit.pru %}
+                        <strong>{{ "{:,.0f}".format(produit.pru).replace(',', ' ') }} FBU</strong>
+                    {% else %}
+                        <span class="badge badge-secondary">-</span>
+                    {% endif %}
+                </td>
+                
+                <!-- Valeur du Stock (Stock Actuel × PRU) -->
+                <td>
+                    {% if produit.article_stockable == 'OUI' and produit.stock_actuel and produit.pru %}
+                        {% set valeur_stock = produit.stock_actuel * produit.pru %}
+                        <strong>{{ "{:,.0f}".format(valeur_stock).replace(',', ' ') }} FBU</strong>
+                    {% else %}
+                        <span class="badge badge-secondary">-</span>
+                    {% endif %}
+                </td>
+                
+                <td>{{ produit.date_creation.strftime('%d/%m/%Y') if produit.date_creation else '-' }}</td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('produit_detail', id=produit.id) }}" class="action-btn btn-info" title="Voir">👁️</a>
+                        <a href="{{ url_for('produit_edit', id=produit.id) }}" class="action-btn btn-warning" title="Modifier">✏️</a>
+                        
+                        {# Check if product has facture lines #}
+                        {% if produit.lignes_facture|length > 0 %}
+                            <span class="action-btn btn-secondary" 
+                                style="opacity:0.5; cursor:not-allowed;" 
+                                title="Ce produit ne peut pas être supprimé car il est utilisé dans {{ produit.lignes_facture|length }} facture(s)">
+                                🗑️
+                            </span>
+                        {% else %}
+                            <button onclick="deleteProduct('{{ produit.id }}')" class="action-btn btn-danger" title="Supprimer">
+                                🗑️
+                            </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="17" style="text-align: center; padding: 40px;">
+                    <p style="color: #6c757d; font-size: 16px;">Aucun produit trouvé</p>
+                    <a href="{{ url_for('produit_new') }}" class="btn btn-success">➕ Créer un produit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
         
         <!-- Pagination -->
         {% if pagination.pages > 1 %}
@@ -561,13 +653,15 @@ td:nth-child(2) { /* Nom column */
                 }
             })
             .then(response => {
+
+                /*
                 if (response.ok) {
                     window.location.reload();
                 } else {
                     return response.json().then(data => {
                         alert('Erreur: ' + (data.message || 'Impossible de supprimer le produit'));
                     });
-                }
+                }*/
             })
             .catch(error => {
                 console.error('Error:', error);

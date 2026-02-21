@@ -1,79 +1,645 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h2>📄 Facture {{ facture.numero }}</h2>
-        <div>
-            <a href="{{ url_for('facture_edit', id=facture.id) }}" class="btn btn-warning">✏️ Modifier</a>
-            <a href="{{ url_for('factures_list') }}" class="btn btn-primary">↩️ Retour</a>
-            <button onclick="imprimerFacture()" class="btn btn-success">🖨️ Imprimer</button>
+
+<style>
+    /* Styles généraux */
+    .facture-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    /* En-tête de la facture */
+    .facture-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .facture-titre h1 {
+        margin: 0;
+        color: #2d3748;
+        font-size: 28px;
+    }
+    
+    .facture-titre .sous-titre {
+        color: #718096;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .facture-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    /* Badges */
+    .badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .badge-paye {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+        border: 1px solid #a5d6a7;
+    }
+    
+    .badge-attente {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe69b 100%);
+        color: #856404;
+        border: 1px solid #ffe69b;
+    }
+    
+    .badge-annulee {
+        background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+        color: #383d41;
+        border: 1px solid #d6d8db;
+    }
+    
+    .badge-avoir {
+        background: linear-gradient(135deg, #f6d0b1 0%, #f5c6a0 100%);
+        color: #8a4b0b;
+        border: 1px solid #f5c6a0;
+    }
+    
+    /* Cartes d'information */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .info-card h3 {
+        margin: 0 0 15px 0;
+        color: #4a5568;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 10px;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px dashed #e2e8f0;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #718096;
+    }
+    
+    .info-value {
+        color: #2d3748;
+        font-weight: 500;
+    }
+    
+    /* Section des produits */
+    .produits-section {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .produits-section h3 {
+        margin: 0 0 20px 0;
+        color: #4a5568;
+        font-size: 18px;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    th {
+        background: #f7fafc;
+        color: #4a5568;
+        padding: 12px;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    td {
+        padding: 15px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: middle;
+    }
+    
+    tbody tr:hover {
+        background: #f7fafc;
+    }
+    
+    tfoot td {
+        border-bottom: none;
+        padding: 15px 12px;
+    }
+    
+    .total-row {
+        font-size: 16px;
+    }
+    
+    .grand-total {
+        font-size: 18px;
+        color: #48bb78;
+    }
+    
+    /* Badge pour les quantités négatives (avoirs) */
+    .quantite-negative {
+        color: #dc3545;
+        font-weight: 600;
+    }
+    
+    .quantite-positive {
+        color: #28a745;
+        font-weight: 600;
+    }
+    
+    /* Pied de page */
+    .facture-footer {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+    }
+    
+    .footer-card {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 15px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .footer-card h4 {
+        margin: 0 0 10px 0;
+        color: #4a5568;
+        font-size: 14px;
+        text-transform: uppercase;
+    }
+    
+    .notes-content {
+        color: #718096;
+        font-style: italic;
+        line-height: 1.6;
+    }
+    
+    /* Timeline pour les avoirs */
+    .avoir-timeline {
+        background: #fff3cd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-left: 4px solid #ed8936;
+    }
+    
+    .avoir-timeline p {
+        margin: 5px 0;
+        color: #856404;
+    }
+    
+    /* Boutons d'impression */
+    @media print {
+        .facture-actions, .btn, .card-header a {
+            display: none !important;
+        }
+        
+        .facture-container {
+            padding: 20px;
+        }
+        
+        body {
+            background: white;
+        }
+    }
+</style>
+
+<div class="facture-container card">
+    <!-- En-tête avec actions -->
+    <div class="facture-header">
+        <div class="facture-titre">
+            <h1>
+                {% if facture.type_document == 'avoir' %}
+                    ↩️ Avoir {{ facture.numero }}
+                {% else %}
+                    📄 Facture {{ facture.numero }}
+                {% endif %}
+            </h1>
+            <div class="sous-titre">
+                Créée le {{ facture.date_creation.strftime('%d/%m/%Y à %H:%M') }}
+                {% if facture.type_document == 'avoir' and facture.facture_originale %}
+                    • Pour facture #{{ facture.facture_originale.numero }}
+                {% endif %}
+            </div>
+        </div>
+        <div class="facture-actions">
+            <a href="{{ url_for('facture_edit', id=facture.id) }}" class="btn btn-warning">
+                ✏️ Modifier
+            </a>
+            <a href="{{ url_for('factures_list') }}" class="btn btn-primary">
+                ↩️ Retour
+            </a>
+            <button onclick="window.print()" class="btn btn-success">
+                🖨️ Imprimer
+            </button>
+            <button onclick="genererPDF()" class="btn btn-info">
+                📄 PDF
+            </button>
         </div>
     </div>
-    
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-        <div>
-            <h3>📅 Informations</h3>
-            <p><strong>Date :</strong> {{ facture.date.strftime('%d/%m/%Y') }}</p>
-            <p><strong>N° Facture :</strong> {{ facture.numero }}</p>
-            <p><strong>État :</strong> 
-                <style>
-                .etat-badge {
-                    padding: 5px 10px;
-                    border-radius: 5px;
-                }
-                .etat-paye { background: #c6f6d5; }
-                .etat-attente { background: #fed7d7; }
-                .etat-impaye { background: #fed7d7; }
-                </style>
 
-                <span class="etat-badge 
-                    {% if facture.etat == 'Payée' %}etat-paye
-                    {% elif facture.etat == 'En attente' %}etat-attente
-                    {% else %}etat-impaye{% endif %}">
-                    {{ facture.etat }}
+    <!-- Timeline pour les avoirs -->
+    {% if facture.type_document == 'avoir' and facture.facture_originale %}
+    <div class="avoir-timeline">
+        <p><strong>↩️ Cet avoir concerne la facture #{{ facture.facture_originale.numero }}</strong></p>
+        <p>Date de la facture originale : {{ facture.facture_originale.date_creation.strftime('%d/%m/%Y') }}</p>
+        <p>Montant original : {{ "{:,.0f}".format(facture.facture_originale.total).replace(',', ' ') }} FBU</p>
+        <p>
+            <a href="{{ url_for('facture_detail', id=facture.facture_originale.id) }}" class="btn btn-sm btn-info">
+                Voir la facture originale
+            </a>
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Timeline pour les factures qui ont des avoirs -->
+    {% if facture.type_document == 'facture' and facture.avoirs %}
+    <div class="avoir-timeline" style="border-left-color: #48bb78; background: #d4edda;">
+        <p><strong>📋 Cette facture a {{ facture.avoirs|length }} avoir(s) :</strong></p>
+        <ul style="margin: 5px 0;">
+            {% for avoir in facture.avoirs %}
+            <li>
+                Avoir #{{ avoir.numero }} - {{ "{:,.0f}".format(avoir.total).replace(',', ' ') }} FBU
+                <a href="{{ url_for('facture_detail', id=avoir.id) }}" style="margin-left: 10px;">Voir</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Grille d'informations -->
+    <div class="info-grid">
+        <!-- Informations facture -->
+        <div class="info-card">
+            <h3>📋 Informations facture</h3>
+            <div class="info-row">
+                <span class="info-label">N° document :</span>
+                <span class="info-value">{{ facture.numero }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Date :</span>
+                <span class="info-value">{{ facture.date_creation.strftime('%d/%m/%Y') }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">État :</span>
+                <span class="info-value">
+                    <span class="badge 
+                        {% if facture.etat == 'Payée' %}badge-paye
+                        {% elif facture.etat == 'Annulée' %}badge-annulee
+                        {% else %}badge-attente{% endif %}">
+                        {{ facture.etat }}
+                    </span>
                 </span>
-            </p>
-            <p><strong>Paiement :</strong> {{ facture.paiement or 'Non spécifié' }}</p>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Type :</span>
+                <span class="info-value">
+                    <span class="badge {% if facture.type_document == 'avoir' %}badge-avoir{% else %}badge-paye{% endif %}">
+                        {% if facture.type_document == 'avoir' %}Avoir{% else %}Facture{% endif %}
+                    </span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Informations paiement -->
+        <div class="info-card">
+            <h3>💰 Paiement</h3>
+            <div class="info-row">
+                <span class="info-label">Mode :</span>
+                <span class="info-value">
+                    {% if facture.paiement %}
+                        {% if facture.paiement == 'espèces' %}
+                            💵 Espèces
+                            {% if facture.devise %}
+                                ({{ facture.devise }})
+                            {% endif %}
+                        {% elif facture.paiement == 'carte' %}
+                            💳 Carte bancaire
+                        {% elif facture.paiement == 'crédit' %}
+                            📝 Crédit
+                        {% elif facture.paiement == 'banque' %}
+                            🏦 Virement bancaire
+                        {% elif facture.paiement == 'mobile' %}
+                            📱 Mobile money
+                        {% else %}
+                            {{ facture.paiement }}
+                        {% endif %}
+                    {% else %}
+                        Non spécifié
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total HT :</span>
+                <span class="info-value">{{ "{:,.0f}".format(facture.total_ht or 0).replace(',', ' ') }} FBU</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">TVA :</span>
+                <span class="info-value">{{ "{:,.0f}".format(facture.total_tva or 0).replace(',', ' ') }} FBU</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total TTC :</span>
+                <span class="info-value"><strong>{{ "{:,.0f}".format(facture.total).replace(',', ' ') }} FBU</strong></span>
+            </div>
+        </div>
+
+        <!-- Informations client -->
+        <div class="info-card">
+            <h3>👤 Client</h3>
+            <div class="info-row">
+                <span class="info-label">Nom :</span>
+                <span class="info-value"><strong>{{ facture.client.nom }} {{ facture.client.prenom }}</strong></span>
+            </div>
+            {% if facture.client.adresse %}
+            <div class="info-row">
+                <span class="info-label">Adresse :</span>
+                <span class="info-value">{{ facture.client.adresse }}</span>
+            </div>
+            {% endif %}
+            {% if facture.client.ville or facture.client.pays %}
+            <div class="info-row">
+                <span class="info-label">Localité :</span>
+                <span class="info-value">{{ facture.client.ville }}, {{ facture.client.pays }}</span>
+            </div>
+            {% endif %}
+            {% if facture.client.telephone %}
+            <div class="info-row">
+                <span class="info-label">📞 Téléphone :</span>
+                <span class="info-value">{{ facture.client.telephone }}</span>
+            </div>
+            {% endif %}
+            {% if facture.client.email %}
+            <div class="info-row">
+                <span class="info-label">✉️ Email :</span>
+                <span class="info-value">{{ facture.client.email }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Section produits -->
+    <div class="produits-section">
+        <h3>📦 Détail des produits</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Référence</th>
+                        <th>Quantité</th>
+                        <th>Prix unitaire HT</th>
+                        <th>TVA %</th>
+                        <th>Total HT</th>
+                        <th>Total TTC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in facture.lignes %}
+                    <tr>
+                        <td>
+                            <strong>{{ ligne.produit.nom }}</strong>
+                            {% if ligne.produit.code %}
+                            <br><small>{{ ligne.produit.code }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ ligne.produit.code or '-' }}</td>
+                        <td>
+                            <span class="{% if ligne.quantite < 0 %}quantite-negative{% else %}quantite-positive{% endif %}">
+                                {{ "%.2f"|format(ligne.quantite) }}
+                                {% if ligne.produit.unite_mesure and ligne.produit.unite_mesure.symbole %}
+                                    {{ ligne.produit.unite_mesure.symbole }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>{{ "{:,.0f}".format(ligne.prix_unitaire).replace(',', ' ') }} FBU</td>
+                        <td>{{ ligne.tva|default(0) }}%</td>
+                        <td>{{ "{:,.0f}".format(ligne.quantite * ligne.prix_unitaire).replace(',', ' ') }} FBU</td>
+                        <td>
+                            <strong>
+                                {{ "{:,.0f}".format(ligne.quantite * ligne.prix_unitaire * (1 + (ligne.tva|default(0))/100)).replace(',', ' ') }} FBU
+                            </strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="5" style="text-align: right;"><strong>Sous-total HT :</strong></td>
+                        <td><strong>{{ "{:,.0f}".format(facture.total_ht or 0).replace(',', ' ') }} FBU</strong></td>
+                        <td></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="5" style="text-align: right;"><strong>Total TVA :</strong></td>
+                        <td><strong>{{ "{:,.0f}".format(facture.total_tva or 0).replace(',', ' ') }} FBU</strong></td>
+                        <td></td>
+                    </tr>
+                    <tr class="grand-total">
+                        <td colspan="5" style="text-align: right;"><strong>TOTAL TTC :</strong></td>
+                        <td></td>
+                        <td>
+                            <strong style="font-size: 1.4rem; color: #48bb78;">
+                                {{ "{:,.0f}".format(facture.total).replace(',', ' ') }} FBU
+                            </strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pied de page avec notes -->
+    <div class="facture-footer">
+        {% if facture.notes %}
+        <div class="footer-card">
+            <h4>📝 Notes</h4>
+            <div class="notes-content">
+                {{ facture.notes }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="footer-card">
+            <h4>🔢 Informations supplémentaires</h4>
+            <div class="info-row">
+                <span class="info-label">ID Facture :</span>
+                <span class="info-value">{{ facture.id }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Nombre de lignes :</span>
+                <span class="info-value">{{ facture.lignes|length }}</span>
+            </div>
+            {% if facture.type_document == 'facture' %}
+            <div class="info-row">
+                <span class="info-label">Avoirs liés :</span>
+                <span class="info-value">{{ facture.avoirs|length }}</span>
+            </div>
+            {% endif %}
         </div>
         
-        <div>
-            <h3>👤 Client</h3>
-            <p><strong>{{ facture.client.nom }} {{ facture.client.prenom }}</strong></p>
-            <p>{{ facture.client.adresse }}</p>
-            <p>{{ facture.client.ville }}, {{ facture.client.pays }}</p>
-            <p>📞 {{ facture.client.telephone }}</p>
-            <p>✉️ {{ facture.client.email }}</p>
+        <div class="footer-card">
+            <h4>📊 Résumé</h4>
+            <div class="info-row">
+                <span class="info-label">Moyenne par article :</span>
+                <span class="info-value">
+                    {% if facture.lignes|length > 0 %}
+                        {{ "{:,.0f}".format(facture.total / facture.lignes|length).replace(',', ' ') }} FBU
+                    {% else %}
+                        0 FBU
+                    {% endif %}
+                </span>
+            </div>
         </div>
     </div>
-    
-    <h3>📦 Produits</h3>
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th>Produit</th>
-                    <th>Quantité</th>
-                    <th>Prix unitaire</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ligne in facture.lignes %}
-                <tr>
-                    <td>{{ ligne.produit.nom }}</td>
-                    <td>{{ ligne.quantite }}</td>
-                    <td>{{ "%.2f"|format(ligne.prix_unitaire) }} €</td>
-                    <td><strong>{{ "%.2f"|format(ligne.total) }} €</strong></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="3" style="text-align: right;"><strong>TOTAL :</strong></td>
-                    <td><strong style="font-size: 1.2rem;">{{ "%.2f"|format(facture.total) }} €</strong></td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
 </div>
+
+
+<div id="facture-data" 
+     data-numero="{{ facture.numero }}"
+     data-date="{{ facture.date_creation.strftime('%d/%m/%Y') }}"
+     data-client-nom="{{ facture.client.nom }}"
+     data-client-prenom="{{ facture.client.prenom }}"
+     data-client-adresse="{{ facture.client.adresse or '' }}"
+     data-client-telephone="{{ facture.client.telephone or '' }}"
+     data-etat="{{ facture.etat }}"
+     data-paiement="{{ facture.paiement or '' }}"
+     style="display: none;"></div>
+
+
+     <script>
+function genererPDF() {
+    // Détecter le type de document
+    const typeDocument = "{{ facture.type_document }}";
+    const titre = typeDocument === 'avoir' ? 'Avoir' : 'Facture';
+    
+    // Données de base
+    const numero = "{{ facture.numero }}";
+    const date = "{{ facture.date_creation.strftime('%d/%m/%Y') }}";
+    const clientNom = "{{ facture.client.nom }} {{ facture.client.prenom or '' }}";
+    const clientAdresse = "{{ facture.client.adresse or '' }}";
+    const clientTelephone = "{{ facture.client.telephone or '' }}";
+    const etat = "{{ facture.etat }}";
+    const paiement = "{{ facture.paiement or '' }}";
+    const total = "{{ "{:,.0f}".format(facture.total).replace(',', ' ') }} FBU";
+    
+    // Pour les avoirs, afficher la facture d'origine
+    let infoOrigine = '';
+    {% if facture.type_document == 'avoir' and facture.facture_originale %}
+    infoOrigine = `<p><strong>Facture d'origine:</strong> {{ facture.facture_originale.numero }}</p>`;
+    {% endif %}
+    
+    // Section produits
+    const produitsSection = document.querySelector('.produits-section').cloneNode(true);
+    produitsSection.querySelectorAll('.btn, .action-buttons, .facture-actions').forEach(el => el.remove());
+    
+    // Date d'impression
+    const maintenant = new Date();
+    const dateImpression = maintenant.toLocaleDateString('fr-FR') + ' ' + 
+                          maintenant.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+    
+    // Ouvrir la fenêtre
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>${titre} ${numero}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                    .header h1 { color: ${typeDocument === 'avoir' ? '#ed8936' : '#2d3748'}; margin-bottom: 5px; }
+                    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+                    .info-box { background: #f8fafc; padding: 20px; border-radius: 8px; }
+                    .info-box h3 { margin-top: 0; color: #4a5568; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    th { background: #f0f0f0; padding: 12px; text-align: left; font-weight: 600; }
+                    td { border: 1px solid #ddd; padding: 10px; }
+                    .total-row { font-weight: bold; background: #f8fafc; }
+                    .grand-total { font-size: 18px; color: #48bb78; }
+                    .footer { margin-top: 50px; font-size: 12px; text-align: center; color: #718096; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+                    .signature { margin-top: 50px; display: flex; justify-content: space-between; }
+                    .signature div { width: 200px; border-top: 1px solid #333; padding-top: 5px; text-align: center; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>${titre} ${numero}</h1>
+                    <p>Date d'émission: ${date}</p>
+                    ${infoOrigine}
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-box">
+                        <h3>Client</h3>
+                        <p><strong>${clientNom}</strong></p>
+                        <p>${clientAdresse}</p>
+                        <p>Tél: ${clientTelephone}</p>
+                    </div>
+                    <div class="info-box">
+                        <h3>Informations de paiement</h3>
+                        <p><strong>État:</strong> ${etat}</p>
+                        <p><strong>Mode de paiement:</strong> ${paiement || 'Non spécifié'}</p>
+                        <p><strong>Total TTC:</strong> <span style="font-size: 18px; font-weight: bold; color: #48bb78;">${total}</span></p>
+                    </div>
+                </div>
+                
+                <h3>Détail des produits</h3>
+                ${produitsSection.outerHTML}
+                
+                <div class="signature">
+                    <div>Signature du client</div>
+                    <div>Cachet et signature</div>
+                </div>
+                
+                <div class="footer">
+                    <p>Document généré le ${dateImpression}</p>
+                    <p>Merci de votre confiance !</p>
+                </div>
+            </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 300);
+}
+</script>
+
 {% endblock %}

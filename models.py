@@ -38,7 +38,7 @@ class Produit(db.Model):
     unite_mesure_id = db.Column(db.Integer, db.ForeignKey('unites_mesure.id'), nullable=False)
     categorie_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
 
-    # ADD THESE RELATIONSHIPS
+    # Relationships
     unite_mesure = db.relationship('UniteMesure', backref='produits')
     categorie = db.relationship('Categorie', backref='produits')
     
@@ -48,13 +48,51 @@ class Produit(db.Model):
     pf = db.Column(db.String(5), nullable=False)
     article_stockable = db.Column(db.String(5), nullable=False)
     pv_ttc = db.Column(db.Float, nullable=False, default=0.0)
-    stock_actuel = db.Column(db.Integer, default=0)  # Current stock (calculated)
-    stock_minimum = db.Column(db.Integer, default=0)  # Alert threshold
+    
+    # New stock fields
+    quantite_initiale = db.Column(db.Float, default=0.0)  # Initial quantity
+    stock_minimum = db.Column(db.Float, default=0.0)  # Alert threshold
+    pru = db.Column(db.Float, default=0.0)  # Prix de revient unitaire
+    stock_actuel = db.Column(db.Float, default=0.0)  # Current stock (calculated from movements)
+    
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relations
     lignes_facture = db.relationship('LigneFacture', backref='produit_ref', lazy=True)
     mouvements_stock = db.relationship('MouvementStock', backref='produit', lazy=True, cascade='all, delete-orphan')
+
+    """ 
+        Add a stock movement and update current stock
+    """
+
+    def ajouter_mouvement_stock(self, type_mouvement, quantite, reference_type=None, 
+                                reference_id=None, commentaire=None, utilisateur=None):
+        
+        stock_avant = self.stock_actuel or 0
+        
+        if type_mouvement == MouvementStock.TYPE_ENTREE:
+            self.stock_actuel = stock_avant + quantite
+        elif type_mouvement == MouvementStock.TYPE_SORTIE:
+            self.stock_actuel = max(0, stock_avant - quantite)  # Prevent negative stock
+        elif type_mouvement == MouvementStock.TYPE_AJUSTEMENT:
+            self.stock_actuel = quantite  # Direct adjustment
+        
+        stock_apres = self.stock_actuel
+        
+        mouvement = MouvementStock(
+            produit_id=self.id,
+            type_mouvement=type_mouvement,
+            quantite=quantite,
+            stock_avant=stock_avant,
+            stock_apres=stock_apres,
+            reference_type=reference_type,
+            reference_id=reference_id,
+            commentaire=commentaire,
+            date_mouvement=datetime.utcnow(),
+            utilisateur=utilisateur
+        )
+        
+        return mouvement
 
     @property
     def valeur_stock(self):
@@ -77,10 +115,10 @@ class MouvementStock(db.Model):
     type_mouvement = db.Column(db.String(20), nullable=False)  # entree, sortie, ajustement
     
     # Quantité
-    quantite = db.Column(db.Integer, nullable=False)
-    stock_avant = db.Column(db.Integer, nullable=False)
-    stock_apres = db.Column(db.Integer, nullable=False)
-    
+    quantite = db.Column(db.Float, nullable=False)
+    stock_avant = db.Column(db.Float, nullable=False)
+    stock_apres = db.Column(db.Float, nullable=False)
+
     # Référence
     reference_type = db.Column(db.String(50))  # 'facture', 'approvisionnement', 'ajustement'
     reference_id = db.Column(db.Integer)  # ID de la facture ou de l'approvisionnement
@@ -150,6 +188,7 @@ class LigneApprovisionnement(db.Model):
     def __repr__(self):
         return f'<LigneApprovisionnement {self.produit_id} x{self.quantite}>'
 
+
 class Client(db.Model):
     __tablename__ = 'clients'
     id = db.Column(db.Integer, primary_key=True)
@@ -164,7 +203,8 @@ class Client(db.Model):
     email = db.Column(db.String(100))
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
     
-    factures = db.relationship('Facture', backref='client', lazy=True)
+    # Changement 1: Utilisation de back_populates au lieu de backref
+    factures = db.relationship('Facture', back_populates='client', lazy=True)
     
     @property
     def display_name(self):
@@ -176,32 +216,57 @@ class Client(db.Model):
     def __repr__(self):
         return f'<Client {self.display_name}>'
 
+
 class Facture(db.Model):
     __tablename__ = 'factures'
+    
     id = db.Column(db.Integer, primary_key=True)
-    numero = db.Column(db.String(20), unique=True, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-    client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
-    total = db.Column(db.Float, default=0.0)
-    paiement = db.Column(db.String(50))
-    etat = db.Column(db.String(20), default='En attente')
+    numero = db.Column(db.String(20), unique=True)
+    client_id = db.Column(db.Integer, db.ForeignKey('clients.id'))
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
-
+    
+    # Type de document (facture ou avoir)
+    type_document = db.Column(db.String(20), default='facture')
+    
+    # Lien vers la facture d'origine (pour les avoirs)
+    facture_originale_id = db.Column(db.Integer, db.ForeignKey('factures.id'), nullable=True)
+    facture_originale = db.relationship('Facture', remote_side=[id], backref='avoirs')
+    
+    # Devise pour paiement en espèces
+    devise = db.Column(db.String(10), nullable=True)
+    
+    # Champs existants
+    paiement = db.Column(db.String(50))
+    etat = db.Column(db.String(50), default='En attente')
+    total = db.Column(db.Float, default=0)
+    notes = db.Column(db.Text)
+    
+    # Changement 2: Utilisation de back_populates au lieu de backref='factures'
+    client = db.relationship('Client', back_populates='factures')
     lignes = db.relationship('LigneFacture', backref='facture', lazy=True, cascade='all, delete-orphan')
-
+    
     def __repr__(self):
         return f'<Facture {self.numero}>'
+    
 
 class LigneFacture(db.Model):
     __tablename__ = 'lignes_facture'
+    
     id = db.Column(db.Integer, primary_key=True)
     facture_id = db.Column(db.Integer, db.ForeignKey('factures.id'), nullable=False)
     produit_id = db.Column(db.Integer, db.ForeignKey('produits.id'), nullable=False)
-    quantite = db.Column(db.Integer, nullable=False)
+    
+    quantite = db.Column(db.Float, nullable=False)  # Changé de Integer à Float
     prix_unitaire = db.Column(db.Float, nullable=False)
-
+    tva = db.Column(db.Float, default=0)  # NOUVEAU : TVA par ligne
+    
+    # Relations
     produit = db.relationship('Produit')
-
+    
     @property
-    def total(self):
+    def total_ht(self):
         return self.quantite * self.prix_unitaire
+    
+    @property
+    def total_ttc(self):
+        return self.total_ht * (1 + self.tva/100)

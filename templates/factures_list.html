@@ -1,59 +1,815 @@
 {% extends "base.html" %}
 {% block content %}
+
+<style>
+    /* Styles pour les badges d'état */
+    .etat-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        text-align: center;
+        min-width: 90px;
+    }
+    
+    .etat-paye {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+        border: 1px solid #a5d6a7;
+    }
+    
+    .etat-attente {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe69b 100%);
+        color: #856404;
+        border: 1px solid #ffe69b;
+    }
+    
+    .etat-annulee {
+        background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+        color: #383d41;
+        border: 1px solid #d6d8db;
+        opacity: 0.7;
+    }
+    
+    /* Style pour le type de document */
+    .type-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-right: 8px;
+    }
+    
+    .type-facture {
+        background: #cfe2ff;
+        color: #084298;
+    }
+    
+    .type-avoir {
+        background: #f6d0b1;
+        color: #8a4b0b;
+    }
+    
+    /* Style pour le mode de paiement */
+    .paiement-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        background: #f8f9fa;
+        color: #495057;
+        border: 1px solid #dee2e6;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+    }
+    
+    /* Cartes de statistiques */
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card.blue {
+        border-left-color: #4299e1;
+    }
+    .stat-card.orange {
+        border-left-color: #ed8936;
+    }
+    .stat-card.green {
+        border-left-color: #48bb78;
+    }
+    .stat-card.red {
+        border-left-color: #f56565;
+    }
+    
+    .stat-card h4 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-card .stat-value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #2d3748;
+        margin: 0;
+    }
+    
+    .stat-card .stat-detail {
+        font-size: 13px;
+        color: #a0aec0;
+        margin-top: 8px;
+    }
+    
+    /* Filtres */
+    .filters-panel {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: flex-end;
+    }
+    
+    .filter-group {
+        flex: 1 1 200px;
+    }
+    
+    .filter-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 13px;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #cbd5e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+    
+    .filter-group input:focus,
+    .filter-group select:focus {
+        outline: none;
+        border-color: #4299e1;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    }
+    
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+    }
+    
+    /* Table améliorée */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    th {
+        background: #2d3748;
+        color: white;
+        padding: 15px 12px;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+    
+    td {
+        padding: 15px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: middle;
+    }
+    
+    tr:last-child td {
+        border-bottom: none;
+    }
+    
+    tr:hover {
+        background: #f7fafc;
+    }
+    
+    tr.avoir-row {
+        background: #fff9f0;
+    }
+    
+    tr.avoir-row:hover {
+        background: #fff3e0;
+    }
+    
+    /* Actions */
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-sm:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .btn-info-sm {
+        background: #17a2b8;
+        color: white;
+    }
+    .btn-info-sm:hover {
+        background: #138496;
+    }
+    
+    .btn-warning-sm {
+        background: #ffc107;
+        color: #212529;
+    }
+    .btn-warning-sm:hover {
+        background: #e0a800;
+    }
+    
+    .btn-success-sm {
+        background: #28a745;
+        color: white;
+    }
+    .btn-success-sm:hover {
+        background: #218838;
+    }
+    
+    .btn-secondary-sm {
+        background: #6c757d;
+        color: white;
+    }
+    .btn-secondary-sm:hover {
+        background: #545b62;
+    }
+    
+    /* Montants */
+    .montant {
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .montant-avoir {
+        color: #dc3545;
+    }
+    
+    /* Client info */
+    .client-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .client-nom {
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .client-detail {
+        font-size: 11px;
+        color: #718096;
+    }
+    
+    /* Toolbar */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .toolbar-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 25px;
+    }
+    
+    .page-link {
+        padding: 8px 14px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        color: #4299e1;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    
+    .page-link:hover {
+        background: #e2e8f0;
+    }
+    
+    .page-link.active {
+        background: #4299e1;
+        color: white;
+        border-color: #4299e1;
+    }
+    
+    .page-link.disabled {
+        color: #a0aec0;
+        pointer-events: none;
+        background: #f7fafc;
+    }
+    
+    /* Badge pour devise */
+    .devise-badge {
+        font-size: 10px;
+        background: #e2e8f0;
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-left: 5px;
+    }
+    
+    /* Message vide */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .empty-state p {
+        color: #a0aec0;
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+
+    /* Tableau avec défilement horizontal */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch; /* Pour un défilement fluide sur mobile */
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+/* Personnalisation de la barre de défilement (optionnel) */
+.table-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Style pour Firefox */
+.table-container {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f1f1f1;
+}
+
+/* Tableau avec largeur minimale pour forcer le défilement */
+table {
+    min-width: 1200px; /* Ajustez selon le nombre de colonnes */
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap; /* Empêche le retour à la ligne dans les cellules */
+}
+
+/* Permettre le retour à la ligne pour certaines colonnes si nécessaire */
+td:nth-child(4) { /* Colonne Client */
+    white-space: normal;
+    min-width: 200px;
+}
+
+td:nth-child(8) { /* Colonne Actions */
+    white-space: normal;
+    min-width: 150px;
+}
+
+/* Indicateur de défilement (optionnel) */
+.scroll-indicator {
+    display: none;
+    text-align: center;
+    color: #718096;
+    font-size: 12px;
+    margin-top: 5px;
+    padding: 5px;
+    background: #f7fafc;
+    border-radius: 20px;
+}
+
+@media (max-width: 768px) {
+    .scroll-indicator {
+        display: block;
+    }
+    
+    .scroll-indicator::before {
+        content: "←→ ";
+        font-size: 14px;
+    }
+}
+
+
+</style>
+
 <div class="card">
     <div class="card-header">
-        <h2>📋 Liste des Factures</h2>
-        <a href="{{ url_for('facture_new') }}" class="btn btn-success">➕ Nouvelle Facture</a>
+        <h2>📋 Gestion des Factures</h2>
+        <div class="toolbar-actions">
+            <a href="{{ url_for('facture_new', type='facture') }}" class="btn btn-success">
+                ➕ Nouvelle Facture
+            </a>
+            <a href="{{ url_for('facture_new', type='avoir') }}" class="btn btn-info">
+                ↩️ Nouvel Avoir
+            </a>
+            <a href="{{ url_for('factures_list') }}" class="btn btn-secondary">
+                ⟲ Réinitialiser
+            </a>
+        </div>
     </div>
-    
-    <div class="table-responsive">
+
+    <!-- Statistiques -->
+    <div class="stats-cards">
+        <div class="stat-card blue">
+            <h4>Total Facturé</h4>
+            <p class="stat-value">{{ "{:,.0f}".format(stats.total_facture).replace(',', ' ') }} FBU</p>
+            <p class="stat-detail">{{ stats.nb_factures }} facture(s)</p>
+        </div>
+        <div class="stat-card orange">
+            <h4>Total Avoirs</h4>
+            <p class="stat-value">{{ "{:,.0f}".format(stats.total_avoir).replace(',', ' ') }} FBU</p>
+            <p class="stat-detail">{{ stats.nb_avoirs }} avoir(s)</p>
+        </div>
+        <div class="stat-card green">
+            <h4>Net à recevoir</h4>
+            <p class="stat-value">{{ "{:,.0f}".format(stats.total_net).replace(',', ' ') }} FBU</p>
+            <p class="stat-detail">Factures - Avoirs</p>
+        </div>
+        <div class="stat-card red">
+            <h4>Impayés</h4>
+            <p class="stat-value">{{ "{:,.0f}".format(stats.total_impaye).replace(',', ' ') }} FBU</p>
+            <p class="stat-detail">{{ stats.nb_impaye }} facture(s)</p>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters-panel">
+        <form method="GET" action="{{ url_for('factures_list') }}" id="filterForm">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="search">🔍 Recherche</label>
+                    <input type="text" id="search" name="search" 
+                           value="{{ search_term or '' }}" 
+                           placeholder="N° facture, client...">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="type">📄 Type</label>
+                    <select id="type" name="type">
+                        <option value="">Tous</option>
+                        <option value="facture" {% if selected_type == 'facture' %}selected{% endif %}>Factures</option>
+                        <option value="avoir" {% if selected_type == 'avoir' %}selected{% endif %}>Avoirs</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="etat">📊 État</label>
+                    <select id="etat" name="etat">
+                        <option value="">Tous</option>
+                        <option value="Payée" {% if selected_etat == 'Payée' %}selected{% endif %}>Payée</option>
+                        <option value="En attente" {% if selected_etat == 'En attente' %}selected{% endif %}>En attente</option>
+                        <option value="Annulée" {% if selected_etat == 'Annulée' %}selected{% endif %}>Annulée</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="paiement">💰 Paiement</label>
+                    <select id="paiement" name="paiement">
+                        <option value="">Tous</option>
+                        <option value="espèces" {% if selected_paiement == 'espèces' %}selected{% endif %}>Espèces</option>
+                        <option value="carte" {% if selected_paiement == 'carte' %}selected{% endif %}>Carte</option>
+                        <option value="crédit" {% if selected_paiement == 'crédit' %}selected{% endif %}>Crédit</option>
+                        <option value="banque" {% if selected_paiement == 'banque' %}selected{% endif %}>Virement</option>
+                        <option value="mobile" {% if selected_paiement == 'mobile' %}selected{% endif %}>Mobile money</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="date_debut">📅 Date début</label>
+                    <input type="date" id="date_debut" name="date_debut" value="{{ date_debut or '' }}">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="date_fin">📅 Date fin</label>
+                    <input type="date" id="date_fin" name="date_fin" value="{{ date_fin or '' }}">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="per_page">📋 Par page</label>
+                    <select id="per_page" name="per_page">
+                        <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                        <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                    </select>
+                </div>
+                
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">Filtrer</button>
+                    <a href="{{ url_for('factures_list') }}" class="btn btn-secondary">Réinitialiser</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Liste des factures -->
+    <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th>N° Facture</th>
+                    <th>Type</th>
+                    <th>N° Document</th>
                     <th>Date</th>
                     <th>Client</th>
-                    <th>Total</th>
+                    <th>Montant</th>
+                    <th>Paiement</th>
                     <th>État</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for facture in factures %}
-                <tr>
-                    <td><strong>{{ facture.numero }}</strong></td>
-                    <td>{{ facture.date.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ facture.client.nom }} {{ facture.client.prenom }}</td>
-                    <td><strong>{{ "{:,.0f}".format(facture.total).replace(',', ' ') }} FBU </strong></td>
+                <tr class="{% if facture.type_document == 'avoir' %}avoir-row{% endif %}">
                     <td>
-                        
-                        <style>
-                        .etat-badge {
-                            padding: 5px 10px;
-                            border-radius: 5px;
-                            display: inline-block;
-                        }
-                        .etat-paye {
-                            background: #c6f6d5;
-                        }
-                        .etat-attente, .etat-impaye {
-                            background: #fed7d7;
-                        }
-                        </style>
-
-                        {% set badge_class = 'etat-paye' if facture.etat == 'Payée' else 'etat-attente' %}
-                        <span class="etat-badge {{ badge_class }}">
+                        {% if facture.type_document == 'avoir' %}
+                            <span class="type-badge type-avoir">Avoir</span>
+                        {% else %}
+                            <span class="type-badge type-facture">Facture</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ facture.numero or facture.id }}</strong>
+                        {% if facture.type_document == 'avoir' and facture.facture_originale %}
+                        <br>
+                        <small style="font-size: 10px; color: #718096;">
+                            ↩️ Facture #{{ facture.facture_originale.numero or facture.facture_originale.id }}
+                        </small>
+                        {% endif %}
+                    </td>
+                    <td>{{ facture.date_creation.strftime('%d/%m/%Y') if facture.date_creation else '-' }}</td>
+                    <td>
+                        <div class="client-info">
+                            <span class="client-nom">{{ facture.client.nom }} {{ facture.client.prenom }}</span>
+                            {% if facture.client.telephone %}
+                            <span class="client-detail">📞 {{ facture.client.telephone }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="montant {% if facture.type_document == 'avoir' %}montant-avoir{% endif %}">
+                        <strong>{{ "{:,.0f}".format(facture.total).replace(',', ' ') }} FBU</strong>
+                    </td>
+                    <td>
+                        {% if facture.paiement %}
+                            <span class="paiement-badge">
+                                {% if facture.paiement == 'espèces' %}
+                                    💵 Espèces
+                                    {% if facture.devise %}
+                                        <span class="devise-badge">{{ facture.devise }}</span>
+                                    {% endif %}
+                                {% elif facture.paiement == 'carte' %}
+                                    💳 Carte
+                                {% elif facture.paiement == 'crédit' %}
+                                    📝 Crédit
+                                {% elif facture.paiement == 'banque' %}
+                                    🏦 Virement
+                                {% elif facture.paiement == 'mobile' %}
+                                    📱 Mobile money
+                                {% else %}
+                                    🔄 {{ facture.paiement }}
+                                {% endif %}
+                            </span>
+                        {% else %}
+                            <span class="paiement-badge">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="etat-badge 
+                            {% if facture.etat == 'Payée' %}etat-paye
+                            {% elif facture.etat == 'Annulée' %}etat-annulee
+                            {% else %}etat-attente{% endif %}">
                             {{ facture.etat }}
                         </span>
                     </td>
                     <td>
-                        <a href="{{ url_for('facture_detail', id=facture.id) }}" class="btn btn-primary btn-sm">👁️</a>
-                        <a href="{{ url_for('facture_edit', id=facture.id) }}" class="btn btn-warning btn-sm">✏️</a>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('facture_detail', id=facture.id) }}" 
+                               class="btn-sm btn-info-sm" title="Voir détails">👁️</a>
+                            
+                            {% if facture.etat != 'Annulée' %}
+                                <a href="{{ url_for('facture_edit', id=facture.id) }}" 
+                                   class="btn-sm btn-warning-sm" title="Modifier">✏️</a>
+                            {% endif %}
+                            
+                            {% if facture.type_document == 'facture' and facture.etat == 'En attente' %}
+                                <button onclick="marquerPayee('{{ facture.id }}')" 
+                                        class="btn-sm btn-success-sm" title="Marquer comme payée">✓</button>
+                            {% endif %}
+                            
+                            {% if facture.type_document == 'facture' and facture.etat != 'Annulée' %}
+                                <a href="{{ url_for('facture_new', type='avoir', originale=facture.id) }}" 
+                                   class="btn-sm btn-secondary-sm" title="Créer un avoir">↩️</a>
+                            {% endif %}
+                            
+                            {% if facture.type_document == 'avoir' and facture.facture_originale %}
+                                <a href="{{ url_for('facture_detail', id=facture.facture_originale.id) }}" 
+                                   class="btn-sm btn-info-sm" title="Voir facture d'origine">📎</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        <p style="font-size: 18px; margin-bottom: 20px;">📭 Aucune facture trouvée</p>
+                        <p style="color: #a0aec0; margin-bottom: 25px;">Essayez de modifier vos filtres ou créez une nouvelle facture</p>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <a href="{{ url_for('facture_new', type='facture') }}" class="btn btn-success">➕ Nouvelle Facture</a>
+                            <a href="{{ url_for('facture_new', type='avoir') }}" class="btn btn-info">↩️ Nouvel Avoir</a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+            <a href="{{ url_for('factures_list', 
+                               page=1, 
+                               search=search_term, 
+                               type=selected_type, 
+                               etat=selected_etat, 
+                               paiement=selected_paiement,
+                               date_debut=date_debut, 
+                               date_fin=date_fin, 
+                               per_page=per_page) }}" class="page-link">⏮️</a>
+            <a href="{{ url_for('factures_list', 
+                               page=pagination.prev_num, 
+                               search=search_term, 
+                               type=selected_type, 
+                               etat=selected_etat, 
+                               paiement=selected_paiement,
+                               date_debut=date_debut, 
+                               date_fin=date_fin, 
+                               per_page=per_page) }}" class="page-link">◀️</a>
+        {% else %}
+            <span class="page-link disabled">⏮️</span>
+            <span class="page-link disabled">◀️</span>
+        {% endif %}
+        
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                <a href="{{ url_for('factures_list', 
+                                   page=page_num, 
+                                   search=search_term, 
+                                   type=selected_type, 
+                                   etat=selected_etat, 
+                                   paiement=selected_paiement,
+                                   date_debut=date_debut, 
+                                   date_fin=date_fin, 
+                                   per_page=per_page) }}" 
+                   class="page-link {% if page_num == pagination.page %}active{% endif %}">
+                    {{ page_num }}
+                </a>
+            {% else %}
+                <span class="page-link">...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+            <a href="{{ url_for('factures_list', 
+                               page=pagination.next_num, 
+                               search=search_term, 
+                               type=selected_type, 
+                               etat=selected_etat, 
+                               paiement=selected_paiement,
+                               date_debut=date_debut, 
+                               date_fin=date_fin, 
+                               per_page=per_page) }}" class="page-link">▶️</a>
+            <a href="{{ url_for('factures_list', 
+                               page=pagination.pages, 
+                               search=search_term, 
+                               type=selected_type, 
+                               etat=selected_etat, 
+                               paiement=selected_paiement,
+                               date_debut=date_debut, 
+                               date_fin=date_fin, 
+                               per_page=per_page) }}" class="page-link">⏭️</a>
+        {% else %}
+            <span class="page-link disabled">▶️</span>
+            <span class="page-link disabled">⏭️</span>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- Résumé des filtres actifs -->
+    {% if search_term or selected_type or selected_etat or selected_paiement or date_debut or date_fin %}
+    <div style="margin-top: 20px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 13px; color: #718096;">
+        <strong>Filtres actifs :</strong>
+        {% if search_term %} 🔍 "{{ search_term }}" {% endif %}
+        {% if selected_type %} 📄 {{ selected_type }} {% endif %}
+        {% if selected_etat %} 📊 {{ selected_etat }} {% endif %}
+        {% if selected_paiement %} 💰 {{ selected_paiement }} {% endif %}
+        {% if date_debut %} 📅 Du {{ date_debut }} {% endif %}
+        {% if date_fin %} au {{ date_fin }} {% endif %}
+        ({{ pagination.total }} résultat(s))
+    </div>
+    {% endif %}
 </div>
+
+<script>
+// Auto-submit filters on change
+document.querySelectorAll('#filterForm select, #filterForm input[type="date"]').forEach(field => {
+    field.addEventListener('change', function() {
+        document.getElementById('filterForm').submit();
+    });
+});
+
+// Debounce search
+let searchTimeout;
+document.getElementById('search').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        document.getElementById('filterForm').submit();
+    }, 500);
+});
+
+// Actions
+function marquerPayee(id) {
+    if (confirm('Marquer cette facture comme payée ?')) {
+        fetch(`/facture/${id}/payer`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Une erreur est survenue');
+        });
+    }
+}
+</script>
 {% endblock %}

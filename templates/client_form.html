@@ -116,11 +116,11 @@
             // Add required to company fields
             companyFields.forEach(field => {
                 const inputs = field.querySelectorAll('input');
-                inputs.forEach(input => input.required = true);
+                inputs.forEach(input => input.required = false);
             });
             
             // Show required asterisks
-            companyRequired.forEach(el => el.style.display = 'inline');
+            //companyRequired.forEach(el => el.style.display = 'inline');
             
         } else {
             // No selection

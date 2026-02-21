@@ -1,0 +1,661 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* Variables pour faciliter la personnalisation */
+    :root {
+        --primary-color: #4299e1;
+        --success-color: #48bb78;
+        --warning-color: #ed8936;
+        --danger-color: #f56565;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --bg-light: #f7fafc;
+        --border-color: #e2e8f0;
+    }
+    
+    /* Style général */
+    .modern-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .card-header-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px 35px;
+    }
+    
+    .card-header-modern h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .card-header-modern h2 i {
+        font-size: 32px;
+        background: rgba(255,255,255,0.2);
+        padding: 10px;
+        border-radius: 50%;
+    }
+    
+    .period-badge {
+        background: rgba(255,255,255,0.15);
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-size: 15px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        backdrop-filter: blur(10px);
+    }
+    
+    /* Cartes de statistiques */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 25px;
+        margin: 30px 0;
+    }
+    
+    .stat-card-modern {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), #9f7aea);
+    }
+    
+    .stat-card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+    
+    .stat-label-modern {
+        color: var(--text-secondary);
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+    
+    .stat-value-modern {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.2;
+        margin-bottom: 5px;
+    }
+    
+    .stat-trend {
+        font-size: 13px;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .trend-up { color: var(--success-color); }
+    .trend-down { color: var(--danger-color); }
+    
+    /* Carte spéciale pour le net total */
+    .net-total-card {
+        background: linear-gradient(135deg, #f6e05e 0%, #fbbf24 100%);
+        color: #744210;
+        grid-column: span 2;
+    }
+    
+    .net-total-card .stat-icon {
+        background: rgba(255,255,255,0.3);
+        color: #744210;
+    }
+    
+    .net-total-card .stat-value-modern {
+        color: #744210;
+        font-size: 40px;
+    }
+    
+    /* Tableau moderne */
+    .table-container-modern {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        margin: 25px 0;
+    }
+    
+    .table-modern {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .table-modern th {
+        background: var(--bg-light);
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 18px 20px;
+        text-align: left;
+        border-bottom: 2px solid var(--border-color);
+    }
+    
+    .table-modern td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-size: 14px;
+    }
+    
+    .table-modern tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .table-modern tbody tr {
+        transition: background 0.2s;
+        cursor: pointer;
+    }
+    
+    .table-modern tbody tr:hover {
+        background: var(--bg-light);
+    }
+    
+    /* Badges */
+    .badge-modern {
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+    
+    .badge-facture {
+        background: linear-gradient(135deg, #c3dafe 0%, #a3bffa 100%);
+        color: #434190;
+    }
+    
+    .badge-avoir {
+        background: linear-gradient(135deg, #feebc8 0%, #fbd38d 100%);
+        color: #7b341e;
+    }
+    
+    .badge-paye {
+        background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+        color: #22543d;
+    }
+    
+    .badge-attente {
+        background: linear-gradient(135deg, #feebc8 0%, #fbd38d 100%);
+        color: #744210;
+    }
+    
+    .badge-annule {
+        background: linear-gradient(135deg, #fed7d7 0%, #fbb6b6 100%);
+        color: #742a2a;
+    }
+    
+    /* Montants */
+    .montant-positif {
+        color: var(--success-color);
+        font-weight: 600;
+    }
+    
+    .montant-negatif {
+        color: var(--danger-color);
+        font-weight: 600;
+    }
+    
+    .montant-neutral {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    
+    /* Info client */
+    .client-info-modern {
+        background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+        border-radius: 16px;
+        padding: 20px 25px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        border: 1px solid #d6bcfa;
+    }
+    
+    .client-avatar {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #9f7aea 0%, #6b46c1 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 32px;
+    }
+    
+    .client-details h3 {
+        margin: 0 0 5px 0;
+        font-size: 20px;
+        color: #44337a;
+    }
+    
+    .client-contact {
+        display: flex;
+        gap: 20px;
+        color: #6b46c1;
+        font-size: 14px;
+    }
+    
+    .client-contact span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    /* Résumé paiements */
+    .paiement-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .paiement-item {
+        background: var(--bg-light);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s;
+    }
+    
+    .paiement-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+    
+    .paiement-icon {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    
+    .paiement-nom {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+    }
+    
+    .paiement-montant {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .paiement-count {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+    
+    /* Actions */
+    .actions-container {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+    
+    .btn-modern {
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        text-decoration: none;
+    }
+    
+    .btn-primary-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+    }
+    
+    .btn-primary-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-success-modern {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+        box-shadow: 0 4px 6px rgba(72, 187, 120, 0.25);
+    }
+    
+    .btn-success-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(72, 187, 120, 0.4);
+    }
+    
+    /* Ligne de total dans le tableau */
+    .total-row {
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        font-weight: 700;
+    }
+    
+    .total-row td {
+        border-top: 2px solid var(--border-color);
+        font-size: 16px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .card-header-modern {
+            padding: 20px;
+            flex-direction: column;
+            text-align: center;
+            gap: 15px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .net-total-card {
+            grid-column: span 1;
+        }
+        
+        .table-modern {
+            font-size: 13px;
+        }
+        
+        .table-modern th,
+        .table-modern td {
+            padding: 12px 10px;
+        }
+        
+        .badge-modern {
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+        
+        .client-info-modern {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .client-contact {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+</style>
+
+<div class="modern-card">
+    <!-- En-tête modernisé -->
+    <div class="card-header-modern" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>
+            <i>👤</i>
+            {{ client.nom }} {{ client.prenom or '' }}
+        </h2>
+        <div class="actions-container no-print" style="margin: 0;">
+            <a href="{{ url_for('rapport_client') }}" class="btn-modern btn-primary-modern">
+                <i>↩️</i> Nouveau rapport
+            </a>
+            <button onclick="window.print()" class="btn-modern btn-success-modern">
+                <i>🖨️</i> Imprimer
+            </button>
+        </div>
+    </div>
+    
+    <!-- Période et info client -->
+    <div style="padding: 0 35px;">
+        <div class="period-badge" style="margin: 20px 0;">
+            <i>📅</i>
+            Période du {{ date_debut.strftime('%d/%m/%Y') }} au {{ date_fin.strftime('%d/%m/%Y') }}
+        </div>
+        
+        <!-- Info client modernisée -->
+        <div class="">
+            
+            <div class="client-details">
+                <h3>NOM DU CLIENT :{{ client.nom }} {{ client.prenom or '' }}</h3>
+                <div class="client-contact">
+                    {% if client.telephone %}
+                    <span><i>📞</i> {{ client.telephone }}</span>
+                    {% endif %}
+                    {% if client.email %}
+                    <span><i>✉️</i> {{ client.email }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Corps du rapport -->
+    <div style="padding: 0 35px 35px 35px;">
+        <!-- Cartes de statistiques modernisées 
+        <div class="stats-grid">
+            <div class="stat-card-modern">
+                <div class="stat-icon">💰</div>
+                <div class="stat-label-modern">Total Factures</div>
+                <div class="stat-value-modern">{{ "{:,.0f}".format(total_factures).replace(',', ' ') }} FBU</div>
+                <div class="stat-trend">
+                    <i>📊</i> {{ nb_factures }} facture{{ 's' if nb_factures > 1 else '' }}
+                </div>
+            </div>
+            
+            <div class="stat-card-modern">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f687b3 0%, #ed64a6 100%);">↩️</div>
+                <div class="stat-label-modern">Total Avoirs</div>
+                <div class="stat-value-modern" style="color: var(--danger-color);">
+                    {{ "{:,.0f}".format(total_avoirs).replace(',', ' ') }} FBU
+                </div>
+                <div class="stat-trend">
+                    <i>📊</i> {{ nb_avoirs }} avoir{{ 's' if nb_avoirs > 1 else '' }}
+                </div>
+            </div>
+            
+            <div class="stat-card-modern net-total-card">
+                <div class="stat-icon">⚖️</div>
+                <div class="stat-label-modern">NET TOTAL</div>
+                <div class="stat-value-modern {% if net_a_payer >= 0 %}positive{% else %}negative{% endif %}">
+                    {{ "{:,.0f}".format(net_a_payer).replace(',', ' ') }} FBU
+                </div>
+                <div class="stat-trend" style="color: #744210;">
+                    <i>💰</i> Solde {{ 'créditeur' if net_a_payer >= 0 else 'débiteur' }}
+                </div>
+            </div>
+            
+            <div class="stat-card-modern">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);">💳</div>
+                <div class="stat-label-modern">Payé / Impayé</div>
+                <div class="stat-value-modern" style="color: var(--success-color); font-size: 20px;">
+                    <i>✅</i> {{ "{:,.0f}".format(total_paye).replace(',', ' ') }} FBU
+                </div>
+                <div class="stat-value-modern" style="color: var(--danger-color); font-size: 20px;">
+                    <i>⏳</i> {{ "{:,.0f}".format(total_impaye).replace(',', ' ') }} FBU
+                </div>
+            </div>
+        </div>-->
+        
+        <!-- Tableau unique pour tous les documents -->
+        <h3 style="margin: 30px 0 15px 0; display: flex; align-items: center; gap: 10px;">
+            <i style="font-size: 24px;">📋</i>
+            Historique des transactions
+        </h3>
+        
+        <div class="table-container-modern">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>N° Document</th>
+                        <th>Date</th>
+                        <th>Montant</th>
+                        <th>État</th>
+                        <th>Paiement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set all_documents = factures + avoirs %}
+                    {% set total_net_calcule = 0 %}
+                    
+                    {% for doc in all_documents|sort(attribute='date_creation', reverse=true) %}
+                    <tr onclick="window.location.href='{{ url_for('facture_detail', id=doc.id) }}'">
+                        <td>
+                            {% if doc.type_document == 'avoir' %}
+                                <span class="badge-modern badge-avoir">
+                                    <i>↩️</i> Avoir
+                                </span>
+                            {% else %}
+                                <span class="badge-modern badge-facture">
+                                    <i>📄</i> Facture
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ doc.numero }}</strong></td>
+                        <td>{{ doc.date_creation.strftime('%d/%m/%Y') }}</td>
+                        <td class="{% if doc.type_document == 'avoir' %}montant-negatif{% else %}montant-positif{% endif %}">
+                            {{ "{:,.0f}".format(doc.total).replace(',', ' ') }} FBU
+                        </td>
+                        <td>
+                            <span class="badge-modern 
+                                {% if doc.etat == 'Payée' %}badge-paye
+                                {% elif doc.etat == 'Annulée' %}badge-annule
+                                {% else %}badge-attente{% endif %}">
+                                <i>{% if doc.etat == 'Payée' %}✅{% elif doc.etat == 'Annulée' %}❌{% else %}⏳{% endif %}</i>
+                                {{ doc.etat }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if doc.paiement %}
+                                <span class="badge-modern" style="background: #e2e8f0; color: #4a5568;">
+                                    {% if doc.paiement == 'espèces' %}💵
+                                    {% elif doc.paiement == 'carte' %}💳
+                                    {% elif doc.paiement == 'crédit' %}📝
+                                    {% elif doc.paiement == 'banque' %}🏦
+                                    {% else %}🔄{% endif %}
+                                    {{ doc.paiement }}
+                                </span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            <i style="font-size: 48px; color: #cbd5e0; margin-bottom: 15px; display: block;">📭</i>
+                            <p style="color: #718096;">Aucune transaction sur cette période</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% if all_documents %}
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="3" style="text-align: right; font-weight: 700;">TOTAL NET :</td>
+                        <td class="{% if net_a_payer >= 0 %}montant-positif{% else %}montant-negatif{% endif %}" style="font-size: 18px;">
+                            <strong>{{ "{:,.0f}".format(net_a_payer).replace(',', ' ') }} FBU</strong>
+                        </td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+        
+        <!-- Statistiques par mode de paiement 
+        {% if paiements %}
+        <h3 style="margin: 30px 0 15px 0; display: flex; align-items: center; gap: 10px;">
+            <i style="font-size: 24px;">💰</i>
+            Répartition par mode de paiement
+        </h3>
+        
+        <div class="paiement-grid">
+            {% for mode, stats in paiements.items() %}
+            <div class="paiement-item">
+                <div class="paiement-icon">
+                    {% if mode == 'espèces' %}💵
+                    {% elif mode == 'carte' %}💳
+                    {% elif mode == 'crédit' %}📝
+                    {% elif mode == 'banque' %}🏦
+                    {% else %}🔄{% endif %}
+                </div>
+                <div class="paiement-nom">{{ mode }}</div>
+                <div class="paiement-montant">{{ "{:,.0f}".format(stats.total).replace(',', ' ') }} FBU</div>
+                <div class="paiement-count">{{ stats.count }} transaction{{ 's' if stats.count > 1 else '' }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}-->
+        
+        <!-- Pied de page -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 12px;">
+            <span><i>📊</i> Rapport généré le {{ maintenant.strftime('%d/%m/%Y à %H:%M') }}</span>
+            <span><i>🔢</i> {{ all_documents|length }} transaction(s) au total</span>
+        </div>
+    </div>
+</div>
+
+<!-- Script pour le tri optionnel -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Optionnel: ajouter un indicateur de clic sur les lignes
+    const rows = document.querySelectorAll('.table-modern tbody tr');
+    rows.forEach(row => {
+        if (!row.querySelector('td[colspan]')) { // Ignorer la ligne "aucune transaction"
+            row.style.cursor = 'pointer';
+            row.addEventListener('mouseenter', () => {
+                row.style.backgroundColor = '#f7fafc';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.backgroundColor = '';
+            });
+        }
+    });
+});
+</script>
+
+{% endblock %}

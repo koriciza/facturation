@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Facture {{ facture.numero }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            color: {% if facture.type_document == 'avoir' %}#ed8936{% else %}#2d3748{% endif %};
+            margin: 0;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .info-box {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #4a5568;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background: #f0f0f0;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .total-row {
+            font-weight: bold;
+            background: #f8fafc;
+        }
+        .grand-total {
+            font-size: 18px;
+            color: #48bb78;
+            text-align: right;
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 12px;
+            text-align: center;
+            color: #718096;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+        }
+        .signature {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature div {
+            width: 200px;
+            border-top: 1px solid #333;
+            padding-top: 5px;
+            text-align: center;
+        }
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{% if facture.type_document == 'avoir' %}AVOIR{% else %}FACTURE{% endif %} {{ facture.numero }}</h1>
+        <p>Date d'émission: {{ facture.date_creation.strftime('%d/%m/%Y') }}</p>
+        {% if facture.type_document == 'avoir' and facture.facture_originale %}
+        <p><strong>Facture d'origine:</strong> {{ facture.facture_originale.numero }}</p>
+        {% endif %}
+    </div>
+    
+    <div class="info-grid">
+        <div class="info-box">
+            <h3>Client</h3>
+            <p><strong>{{ facture.client.nom }} {{ facture.client.prenom or '' }}</strong></p>
+            {% if facture.client.adresse %}
+            <p>{{ facture.client.adresse }}</p>
+            {% endif %}
+            {% if facture.client.ville %}
+            <p>{{ facture.client.ville }}{% if facture.client.pays %}, {{ facture.client.pays }}{% endif %}</p>
+            {% endif %}
+            {% if facture.client.telephone %}
+            <p>Tél: {{ facture.client.telephone }}</p>
+            {% endif %}
+            {% if facture.client.email %}
+            <p>Email: {{ facture.client.email }}</p>
+            {% endif %}
+        </div>
+        <div class="info-box">
+            <h3>Informations</h3>
+            <p><strong>État:</strong> {{ facture.etat }}</p>
+            <p><strong>Mode de paiement:</strong> 
+                {% if facture.paiement == 'espèces' %}
+                    Espèces{% if facture.devise %} ({{ facture.devise }}){% endif %}
+                {% elif facture.paiement == 'carte' %}
+                    Carte bancaire
+                {% elif facture.paiement == 'crédit' %}
+                    Crédit
+                {% elif facture.paiement == 'banque' %}
+                    Virement bancaire
+                {% else %}
+                    {{ facture.paiement or 'Non spécifié' }}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    
+    <h3>Détail des produits</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Produit</th>
+                <th>Référence</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>TVA</th>
+                <th>Total TTC</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in facture.lignes %}
+            <tr>
+                <td>{{ ligne.produit.nom }}</td>
+                <td>{{ ligne.produit.code or '-' }}</td>
+                <td>{{ "%.2f"|format(ligne.quantite) }}</td>
+                <td>{{ "{:,.0f}".format(ligne.prix_unitaire).replace(',', ' ') }} FBU</td>
+                <td>{{ ligne.tva|default(0) }}%</td>
+                <td><strong>{{ "{:,.0f}".format(ligne.quantite * ligne.prix_unitaire * (1 + (ligne.tva|default(0))/100)).replace(',', ' ') }} FBU</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="grand-total">
+        Total TTC: {{ "{:,.0f}".format(facture.total).replace(',', ' ') }} FBU
+    </div>
+    
+    {% if facture.notes %}
+    <div style="margin-top: 30px;">
+        <h3>Notes</h3>
+        <p>{{ facture.notes }}</p>
+    </div>
+    {% endif %}
+    
+    <div class="signature">
+        <div>Signature du client</div>
+        <div>Cachet et signature</div>
+    </div>
+    
+    <div class="footer">
+        <p>Document généré le {{ now().strftime('%d/%m/%Y %H:%M') }}</p>
+        <p>Merci de votre confiance !</p>
+    </div>
+</body>
+</html>

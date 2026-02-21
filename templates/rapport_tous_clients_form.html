@@ -1,0 +1,607 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+        padding: 25px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .card-header h2 {
+        margin: 0;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .card-header h2 i {
+        font-size: 28px;
+    }
+    
+    .card-body {
+        padding: 30px;
+    }
+    
+    /* Style pour les inputs date */
+    .date-input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 15px;
+        font-family: inherit;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: white;
+    }
+    
+    .date-input:hover {
+        border-color: #cbd5e0;
+        background-color: #fafafa;
+    }
+    
+    .date-input:focus {
+        outline: none;
+        border-color: #48bb78;
+        box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.15);
+    }
+    
+    /* Style pour les labels */
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+        letter-spacing: 0.3px;
+    }
+    
+    .form-label i {
+        margin-right: 8px;
+        color: #48bb78;
+    }
+    
+    /* Grille pour les dates */
+    .dates-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin: 30px 0 25px;
+    }
+    
+    .date-field {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    
+    .date-field:hover {
+        background: #f0f4f8;
+        border-color: #cbd5e0;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    /* Badge d'information */
+    .info-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+        color: #276749;
+        border-radius: 30px;
+        font-size: 12px;
+        margin-top: 12px;
+        border: 1px solid #9ae6b4;
+    }
+    
+    .info-badge i {
+        font-size: 14px;
+    }
+    
+    /* Message d'erreur */
+    .error-message {
+        display: none;
+        margin: 20px 0;
+        padding: 15px 20px;
+        background: #fff5f5;
+        border-left: 4px solid #f56565;
+        border-radius: 12px;
+        color: #c53030;
+        font-size: 14px;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .error-message.show {
+        display: flex;
+    }
+    
+    .error-message i {
+        font-size: 20px;
+    }
+    
+    /* Boutons d'actions rapides */
+    .quick-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+        padding: 20px;
+        background: linear-gradient(135deg, #fafafa 0%, #f7fafc 100%);
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .quick-actions-title {
+        width: 100%;
+        margin-bottom: 10px;
+        font-size: 14px;
+        color: #4a5568;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .quick-actions-title i {
+        color: #48bb78;
+        font-size: 18px;
+    }
+    
+    .quick-btn {
+        padding: 10px 18px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 30px;
+        color: #4a5568;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    
+    .quick-btn:hover {
+        background: #48bb78;
+        border-color: #48bb78;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(72, 187, 120, 0.3);
+    }
+    
+    .quick-btn i {
+        font-size: 14px;
+    }
+    
+    /* Statistiques rapides */
+    .stats-preview {
+        background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #b2f5ea;
+    }
+    
+    .stats-preview-title {
+        font-size: 14px;
+        color: #2c7a7b;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    
+    .stat-item {
+        background: white;
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    
+    .stat-value {
+        font-size: 20px;
+        font-weight: bold;
+        color: #2d3748;
+        margin: 5px 0;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Boutons de soumission */
+    .actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    
+    .btn {
+        padding: 14px 28px;
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(72, 187, 120, 0.4);
+    }
+    
+    .btn-warning {
+        background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+        color: white;
+    }
+    
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(237, 137, 54, 0.3);
+    }
+    
+    /* Tooltip */
+    .tooltip {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .tooltip .tooltip-text {
+        visibility: hidden;
+        width: 200px;
+        background: #2d3748;
+        color: white;
+        text-align: center;
+        padding: 8px 12px;
+        border-radius: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -100px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 12px;
+        pointer-events: none;
+    }
+    
+    .tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
+    
+    /* Responsive */
+    @media (max-width: 640px) {
+        .card-header {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+        
+        .dates-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .actions {
+            flex-direction: column;
+        }
+        
+        .quick-actions {
+            justify-content: center;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    
+    /* Animation */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .date-field {
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    .date-field:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+</style>
+
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>
+                <i>👥</i>
+                Rapport tous clients
+            </h2>
+            <a href="{{ url_for('rapports_index') }}" class="btn" style="background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border-radius: 10px; text-decoration: none; display: flex; align-items: center; gap: 5px;">
+                <i>↩️</i> Retour
+            </a>
+        </div>
+        
+        <div class="card-body">
+           
+            <form method="post" id="rapportForm">
+                <!-- Boutons d'actions rapides -->
+                <div class="quick-actions">
+                    <div class="quick-actions-title">
+                        <i>⏱️</i>
+                        Sélection rapide de la période
+                    </div>
+                    <button type="button" class="quick-btn" onclick="setPeriod('today')">
+                        <i>📅</i> Aujourd'hui
+                    </button>
+                    <button type="button" class="quick-btn" onclick="setPeriod('yesterday')">
+                        <i>⬅️</i> Hier
+                    </button>
+                    <button type="button" class="quick-btn" onclick="setPeriod('week')">
+                        <i>📊</i> Cette semaine
+                    </button>
+                    <button type="button" class="quick-btn" onclick="setPeriod('lastweek')">
+                        <i>⬅️</i> Semaine dernière
+                    </button>
+                    <button type="button" class="quick-btn" onclick="setPeriod('month')">
+                        <i>📆</i> Ce mois
+                    </button>
+                    <button type="button" class="quick-btn" onclick="setPeriod('lastmonth')">
+                        <i>⬅️</i> Mois dernier
+                    </button>
+                    <button type="button" class="quick-btn" onclick="setPeriod('quarter')">
+                        <i>📊</i> Ce trimestre
+                    </button>
+                    <button type="button" class="quick-btn" onclick="setPeriod('year')">
+                        <i>📅</i> Cette année
+                    </button>
+                    <button type="button" class="quick-btn" onclick="setPeriod('lastyear')">
+                        <i>⬅️</i> Année dernière
+                    </button>
+                </div>
+                
+                <!-- Champs de date -->
+                <div class="dates-grid">
+                    <div class="date-field">
+                        <label for="date_debut" class="form-label">
+                            <i>📌</i> Date de début
+                        </label>
+                        <input type="date" id="date_debut" name="date_debut" 
+                               class="date-input" required 
+                               value="{{ maintenant.strftime('%Y-%m-01') }}">
+                        
+                    </div>
+                    
+                    <div class="date-field">
+                        <label for="date_fin" class="form-label">
+                            <i>📍</i> Date de fin
+                        </label>
+                        <input type="date" id="date_fin" name="date_fin" 
+                               class="date-input" required 
+                               value="{{ maintenant.strftime('%Y-%m-%d') }}">
+                         <div class="info-badge">
+                                <i>ℹ️</i>
+                                La date de fin doit être postérieure ou égale à la date de début.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Message d'erreur pour les dates -->
+                <div id="date-error" class="error-message">
+                    <i>⚠️</i>
+                    <span>La date de fin doit être postérieure ou égale à la date de début.</span>
+                </div>
+                
+                <!-- Informations complémentaires -->
+                <div style="margin: 20px 0; padding: 15px; background: #fefcbf; border-radius: 12px; border-left: 4px solid #ecc94b; color: #744210; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <i style="font-size: 20px;">📌</i>
+                    <span>Le rapport inclura tous les clients ayant une activité sur la période sélectionnée.</span>
+                </div>
+                
+                <!-- Boutons d'action -->
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary tooltip">
+                        <i>📊</i> Générer le rapport
+                        <span class="tooltip-text">Génère un rapport détaillé pour tous les clients sur la période sélectionnée</span>
+                    </button>
+                    <a href="{{ url_for('rapports_index') }}" class="btn btn-warning tooltip">
+                        <i>↩️</i> Annuler
+                        <span class="tooltip-text">Retour à la page des rapports</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fonctions pour les périodes rapides
+function setPeriod(period) {
+    const today = new Date();
+    const dateDebut = document.getElementById('date_debut');
+    const dateFin = document.getElementById('date_fin');
+    
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    function getFirstDayOfWeek(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Ajuste pour lundi
+        return new Date(d.setDate(diff));
+    }
+    
+    function getLastDayOfWeek(date) {
+        const firstDay = getFirstDayOfWeek(date);
+        const lastDay = new Date(firstDay);
+        lastDay.setDate(firstDay.getDate() + 6);
+        return lastDay;
+    }
+    
+    switch(period) {
+        case 'today':
+            dateDebut.value = formatDate(today);
+            dateFin.value = formatDate(today);
+            break;
+            
+        case 'yesterday':
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+            dateDebut.value = formatDate(yesterday);
+            dateFin.value = formatDate(yesterday);
+            break;
+            
+        case 'week':
+            const firstDayWeek = getFirstDayOfWeek(today);
+            dateDebut.value = formatDate(firstDayWeek);
+            dateFin.value = formatDate(today);
+            break;
+            
+        case 'lastweek':
+            const lastWeek = new Date(today);
+            lastWeek.setDate(today.getDate() - 7);
+            const firstDayLastWeek = getFirstDayOfWeek(lastWeek);
+            const lastDayLastWeek = getLastDayOfWeek(lastWeek);
+            dateDebut.value = formatDate(firstDayLastWeek);
+            dateFin.value = formatDate(lastDayLastWeek);
+            break;
+            
+        case 'month':
+            const firstMonthDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            dateDebut.value = formatDate(firstMonthDay);
+            dateFin.value = formatDate(today);
+            break;
+            
+        case 'lastmonth':
+            const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+            dateDebut.value = formatDate(lastMonth);
+            dateFin.value = formatDate(lastMonthEnd);
+            break;
+            
+        case 'quarter':
+            const quarter = Math.floor(today.getMonth() / 3);
+            const firstQuarterDay = new Date(today.getFullYear(), quarter * 3, 1);
+            dateDebut.value = formatDate(firstQuarterDay);
+            dateFin.value = formatDate(today);
+            break;
+            
+        case 'year':
+            const firstYearDay = new Date(today.getFullYear(), 0, 1);
+            dateDebut.value = formatDate(firstYearDay);
+            dateFin.value = formatDate(today);
+            break;
+            
+        case 'lastyear':
+            const lastYear = new Date(today.getFullYear() - 1, 0, 1);
+            const lastYearEnd = new Date(today.getFullYear() - 1, 11, 31);
+            dateDebut.value = formatDate(lastYear);
+            dateFin.value = formatDate(lastYearEnd);
+            break;
+    }
+    
+    validateDates();
+}
+
+// Validation des dates
+function validateDates() {
+    const dateDebut = document.getElementById('date_debut');
+    const dateFin = document.getElementById('date_fin');
+    const errorDiv = document.getElementById('date-error');
+    
+    if (dateDebut.value && dateFin.value) {
+        if (dateFin.value < dateDebut.value) {
+            errorDiv.classList.add('show');
+            dateFin.style.borderColor = '#f56565';
+            return false;
+        } else {
+            errorDiv.classList.remove('show');
+            dateFin.style.borderColor = '#e2e8f0';
+            return true;
+        }
+    }
+    return true;
+}
+
+// Écouteurs d'événements
+document.addEventListener('DOMContentLoaded', function() {
+    const dateDebut = document.getElementById('date_debut');
+    const dateFin = document.getElementById('date_fin');
+    
+    dateDebut.addEventListener('change', validateDates);
+    dateFin.addEventListener('change', validateDates);
+    
+    // Validation avant soumission
+    document.getElementById('rapportForm').addEventListener('submit', function(e) {
+        if (!validateDates()) {
+            e.preventDefault();
+        }
+    });
+});
+
+// Formateur de nombre pour l'aperçu (si besoin)
+{% if not total_ca %}
+// Vous pouvez passer ces statistiques depuis la route
+// total_ca, clients_count, factures_count, avoirs_count
+{% endif %}
+</script>
+
+{% endblock %}

@@ -7,6 +7,11 @@
         </div>
         
         <form method="post">
+
+            {% if produit %}
+            <input type="hidden" name="produit_id" value="{{ produit.id }}">
+            {% endif %}
+
             <!-- Nom de l'article (required) -->
             <div class="form-group">
                 <label for="nom">Nom de l'article <span style="color: #e53e3e;">*</span></label>
@@ -81,15 +86,44 @@
     </select>
 </div>
             
-            <!-- Article Stockable ? -->
-            <div class="form-group">
-                <label for="article_stockable">Article Stockable ? :</label>
-                <select id="article_stockable" name="article_stockable">
-                    <option value="">Sélectionner</option>
-                    <option value="OUI" {% if not produit or produit.article_stockable == 'OUI' %}selected{% endif %}>Oui</option>
-                    <option value="NON" {% if produit and not produit.article_stockable == 'NON' %}selected{% endif %}>Non</option>
-                </select>
-            </div>
+            
+<div class="form-group">
+    <label for="article_stockable">Article Stockable ? :</label>
+    <select id="article_stockable" name="article_stockable" onchange="toggleStockFields(this.value)">
+        <option value="" selected disabled>Sélectionner</option>
+        <option value="OUI" {% if produit and produit.article_stockable == 'OUI' %}selected{% endif %}>Oui</option>
+        <option value="NON" {% if produit and produit.article_stockable == 'NON' %}selected{% endif %}>Non</option>
+    </select>
+</div>
+
+<!-- Stock fields (shown only when OUI is selected) -->
+<div id="stockFields" style="display: none; margin-top: 20px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 6px; background-color: #f9f9f9;">
+    <h3 style="margin-top: 0; margin-bottom: 15px; color: #2d3748;">Informations de stock</h3>
+    
+    <div class="form-group">
+        <label for="quantite_initiale">Quantité initiale <span style="color: #e53e3e;">*</span></label>
+        <input type="number" id="quantite_initiale" name="quantite_initiale" 
+               value="{{ produit.quantite_initiale if produit and produit.quantite_initiale is not none else '' }}" 
+               step="0.01" min="0" placeholder="0.00" class="form-control">
+        <small style="color: #718096;">Quantité en stock initiale</small>
+    </div>
+
+    <div class="form-group">
+        <label for="stock_minimum">Quantité minimale <span style="color: #e53e3e;">*</span></label>
+        <input type="number" id="stock_minimum" name="stock_minimum" 
+               value="{{ produit.stock_minimum if produit and produit.stock_minimum is not none else '' }}" 
+               step="0.01" min="0" placeholder="0.00" class="form-control">
+        <small style="color: #718096;">Seuil d'alerte minimum</small>
+    </div>
+
+    <div class="form-group">
+        <label for="pru">PRU (Prix de revient unitaire) <span style="color: #e53e3e;">*</span></label>
+        <input type="number" id="pru" name="pru" 
+               value="{{ produit.pru if produit and produit.pru is not none else '' }}" 
+               step="0.01" min="0" placeholder="0.00" class="form-control">
+        <small style="color: #718096;">Prix de revient unitaire</small>
+    </div>
+</div>
             
             <!-- PV TTC (required) -->
             <div class="form-group">
@@ -98,21 +132,6 @@
             </div>
 
 
-            <div class="form-group">
-    <label for="stock_actuel">Stock actuel</label>
-    <input type="number" id="stock_actuel" name="stock_actuel" 
-           value="{{ produit.stock_actuel if produit and produit.stock_actuel is not none else 0 }}" 
-           step="0.01" min="0" placeholder="0.00">
-    <small style="color: #718096;">Quantité en stock</small>
-</div>
-
-<div class="form-group">
-    <label for="stock_minimum">Stock minimum d'alerte</label>
-    <input type="number" id="stock_minimum" name="stock_minimum" 
-           value="{{ produit.stock_minimum if produit and produit.stock_minimum is not none else 0 }}" 
-           step="0.01" min="0" placeholder="0.00">
-    <small style="color: #718096;">Seuil en dessous duquel une alerte sera affichée</small>
-</div>
             
             <!-- Note: Required fields marked with * -->
             <p style="color: #718096; font-size: 0.9rem; margin-bottom: 20px;"><span style="color: #e53e3e;">*</span> Champs obligatoires</p>
@@ -468,6 +487,87 @@ window.onclick = function(event) {
         closeCategorieModal();
     }
 }
+
+
+function toggleStockFields(value) {
+    const stockFields = document.getElementById('stockFields');
+    if (value === 'OUI') {
+        stockFields.style.display = 'block';
+        // Make fields required
+        document.getElementById('quantite_initiale').required = true;
+        document.getElementById('stock_minimum').required = true;
+        document.getElementById('pru').required = true;
+    } else {
+        stockFields.style.display = 'none';
+        // Remove required attribute
+        document.getElementById('quantite_initiale').required = false;
+        document.getElementById('stock_minimum').required = false;
+        document.getElementById('pru').required = false;
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('article_stockable');
+    if (select) {
+        // Check if we're in edit mode and have a value
+        {% if produit and produit.article_stockable %}
+            toggleStockFields('{{ produit.article_stockable }}');
+        {% else %}
+            // For new products, ensure "Sélectionner" is shown
+            select.value = '';
+        {% endif %}
+    }
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const codeInput = document.getElementById('code');
+    const codeWarning = document.createElement('div');
+    codeWarning.style.color = '#e53e3e';
+    codeWarning.style.fontSize = '12px';
+    codeWarning.style.marginTop = '5px';
+    codeInput.parentNode.appendChild(codeWarning);
+    
+    let checkTimeout;
+    
+    codeInput.addEventListener('input', function() {
+        clearTimeout(checkTimeout);
+        const code = this.value.trim();
+        
+        if (code.length < 2) {
+            codeWarning.textContent = '';
+            return;
+        }
+        
+        // Show checking indicator
+        codeWarning.textContent = 'Vérification...';
+        codeWarning.style.color = '#718096';
+        
+        checkTimeout = setTimeout(function() {
+            // Get current product ID for edit mode
+            const produitId = document.querySelector('input[name="produit_id"]')?.value || '';
+            
+            fetch(`/api/check-code?code=${encodeURIComponent(code)}&produit_id=${produitId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        codeWarning.textContent = '⚠️ Ce code est déjà utilisé. Veuillez en choisir un autre.';
+                        codeWarning.style.color = '#e53e3e';
+                    } else {
+                        codeWarning.textContent = '✓ Code disponible';
+                        codeWarning.style.color = '#48bb78';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    codeWarning.textContent = '';
+                });
+        }, 500);
+    });
+});
+
+
 </script>
 
 <style>
